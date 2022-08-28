@@ -1,0 +1,39 @@
+var x 8
+var x 7
+set x 9
+set y 5
+var y 4
+text x:
+output x
+text "y:"
+output y
+text x+y:
+output + x y
+text x-y:
+output - x y
+text x*y:
+output * x y
+text x/y:
+output / x y
+text x%y:
+output % x y
+text x>y:
+output > x y
+text x<y:
+output < x y
+text x<=y:
+output <= x y
+text x>=y:
+output >= x y
+text x==y:
+output == x y
+text x!=y:
+output != x y
+text x&&y:
+output && x y
+text x||y:
+output || x y
+text !x:
+output ! x
+text ~x:
+output ~ x
