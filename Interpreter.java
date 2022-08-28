@@ -11,7 +11,16 @@ public class Interpreter
 
     public static void main(String[] args) throws FileNotFoundException
     {
-        File program = new File("src/basic_functionality.txt");
+        if (args.length < 1)
+        {
+            System.out.println("File path not provided as argument");
+            System.exit(0);
+        }
+        else if (args.length > 1)
+        {
+            System.out.println("WARNING: Unused arguments");
+        }
+        File program = new File(args[0]);
         Scanner scanner = new Scanner(program);
         while (scanner.hasNext())
         {
