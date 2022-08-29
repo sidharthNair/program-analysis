@@ -87,15 +87,39 @@ public class Interpreter
      * Provided an input scanner that points to the beginning of an expression
      * in prefix notation, this function returns the result of the evaluation
      * of that expression.
+     * 
+     * Example: * + 5 3 2 (which is (5 + 3) * 2)
+     * After parsing, expression stack: [* + 5 3 1] <-- top
+     * 
+     * Stack views after each loop of evaluation:
+     * iteration 1)
+     *      expression: [* + 5 3]
+     *      evaluation: [2]
+     * iteration 2)
+     *      expression: [* + 5]
+     *      evaluation: [2 3]
+     * iteration 2)
+     *      expression: [* +]
+     *      evaluation: [2 3 5]
+     * iteration 2)
+     *      expression: [*]
+     *      evaluation: [2 8]
+     * iteration 2)
+     *      expression: []
+     *      evaluation: [16] <-- result
      */
     public static int evaluateExpression(Scanner scanner) {
-        Stack<String> expression = new Stack<String>();
+        Stack<String> expressionStack = new Stack<String>();
         Stack<Integer> evaluationStack = new Stack<Integer>();
 
+        //
+        // Parse the expression and store it in a stack since we will be 
+        // evaluating the expression from back to front
+        //
         int numLeft = 1;
         while (numLeft != 0) {
             String token = scanner.next();
-            expression.push(token);
+            expressionStack.push(token);
             if (token.matches("\\d+") || symbolTable.containsKey(token))
             {
                 numLeft--;
@@ -106,21 +130,28 @@ public class Interpreter
             }
         }
 
-        while (!expression.isEmpty()) {
-            String token = expression.pop();
+        // Iterate until we have gone over the entire expression
+        while (!expressionStack.isEmpty()) {
+            String token = expressionStack.pop();
             if (token.matches("\\d+"))
             {
+                // If the token is an integer, push it on the evaluation stack
                 evaluationStack.push(Integer.parseInt(token));
             }
             else if (symbolTable.containsKey(token)) {
+                // If the token is a variable, push its associated value on the evaluation stack
                 evaluationStack.push(symbolTable.get(token));
             }
             else {
+                // Token is an operator, handle the case of unary vs. binary operator
                 if (token.matches("[!~]"))
                 {
+                    // Unary operator, pop operand from evaluation stack
                     int operand = evaluationStack.pop();
+
+                    // Perform operation and push result onto evaluation stack
                     if (token.equals("!")) {
-                        evaluationStack.push(operand == 0 ? 1 : 0);
+                        evaluationStack.push((operand == 0) ? 1 : 0);
                     }
                     else if (token.equals("~")) {
                         evaluationStack.push(operand * -1);
@@ -128,8 +159,11 @@ public class Interpreter
                 }
                 else
                 {
+                    // Binary operator, pop two operands from evaluation stack
                     int operand1 = evaluationStack.pop();
                     int operand2 = evaluationStack.pop();
+
+                    // Perform operation and push result onto evaluation stack
                     if (token.equals("+")) {
                         evaluationStack.push(operand1 + operand2);
                     }
@@ -146,72 +180,34 @@ public class Interpreter
                         evaluationStack.push(operand1 % operand2);
                     }
                     else if (token.equals("&&")) {
-                        if (operand1 != 0 && operand2 != 0) {
-                            evaluationStack.push(1);
-                        }
-                        else {
-                            evaluationStack.push(0);
-                        }
+                        evaluationStack.push((operand1 != 0 && operand2 != 0) ? 1 : 0);
                     }
                     else if (token.equals("||")) {
-                        if (operand1 != 0 || operand2 != 0) {
-                            evaluationStack.push(1);
-                        }
-                        else {
-                            evaluationStack.push(0);
-                        }
+                        evaluationStack.push((operand1 != 0 || operand2 != 0) ? 1 : 0);
                     }
                     else if (token.equals(">")) {
-                        if (operand1 > operand2) {
-                            evaluationStack.push(1);
-                        }
-                        else {
-                            evaluationStack.push(0);
-                        }
+                        evaluationStack.push((operand1 > operand2) ? 1 : 0);
                     }
                     else if (token.equals("<")) {
-                        if (operand1 < operand2) {
-                            evaluationStack.push(1);
-                        }
-                        else {
-                            evaluationStack.push(0);
-                        }
+                        evaluationStack.push((operand1 < operand2) ? 1 : 0);
                     }
                     else if (token.equals("==")) {
-                        if (operand1 == operand2) {
-                            evaluationStack.push(1);
-                        }
-                        else {
-                            evaluationStack.push(0);
-                        }
+                        evaluationStack.push((operand1 == operand2) ? 1 : 0);
                     }
                     else if (token.equals("!=")) {
-                        if (operand1 != operand2) {
-                            evaluationStack.push(1);
-                        }
-                        else {
-                            evaluationStack.push(0);
-                        }
+                        evaluationStack.push((operand1 != operand2) ? 1 : 0);
                     }
                     else if (token.equals("<=")) {
-                        if (operand1 <= operand2) {
-                            evaluationStack.push(1);
-                        }
-                        else {
-                            evaluationStack.push(0);
-                        }
+                        evaluationStack.push((operand1 <= operand2) ? 1 : 0);
                     }
                     else if (token.equals(">=")) {
-                        if (operand1 >= operand2) {
-                            evaluationStack.push(1);
-                        }
-                        else {
-                            evaluationStack.push(0);
-                        }
+                        evaluationStack.push((operand1 >= operand2) ? 1 : 0);
                     }
                 }
             }
         }
+
+        // Final result is a single value on the evaluation stack
         return(evaluationStack.pop());
     }
 }
