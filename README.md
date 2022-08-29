@@ -1,4 +1,5 @@
 # XMini-Interpreter
+Assignment 1 for Engineering Program Analysis
 
-## Assignment Documentation
-https://github.com/sidharthNair/XMini-Interpreter/blob/main/inter.pdf
+## Assignment Information
+https://github.com/sidharthNair/XMini-Interpreter/blob/main/assignment.pdf
