@@ -36,11 +36,10 @@ public class Interpreter
                 if (first.charAt(0) == '\"')
                 {
                     String output = first.substring(1, first.length());
-                    String line = scanner.nextLine();
                     while (output.indexOf("\"") == -1)
                     {
+                        String line = scanner.nextLine();
                         output += line;
-                        line = scanner.nextLine();
                     
                     }
                     output = output.substring(0, output.indexOf("\""));
