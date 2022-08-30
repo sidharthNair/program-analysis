@@ -39,7 +39,7 @@ public class Interpreter
                     while (output.indexOf("\"") == -1)
                     {
                         String line = scanner.nextLine();
-                        output += line;
+                        output += line + "\n";
                     
                     }
                     output = output.substring(0, output.indexOf("\""));
@@ -88,7 +88,7 @@ public class Interpreter
      * in prefix notation, this function returns the result of the evaluation
      * of that expression.
      * 
-     * Example: * + 5 3 2 (which is (5 + 3) * 2)
+     * Example: * + 5 3 2 (which is (5 + 3) * 2 = 16)
      * After parsing, expression stack: [* + 5 3 1] <-- top
      * 
      * Stack views after each loop of evaluation:
