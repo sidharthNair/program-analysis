@@ -1,6 +1,7 @@
 import java.io.File;
 import java.io.FileNotFoundException;
 import java.util.Scanner;
+import java.util.regex.Pattern;
 import java.util.HashMap;
 import java.util.Stack;
 
@@ -25,7 +26,7 @@ public class Interpreter
         while (scanner.hasNext())
         {
             String statement = scanner.next();
-            if (statement.equals("//") || statement.equals(""))
+            if (statement.equals("//"))
             {
                 // Comment or empty line, so skip it
                 scanner.nextLine();
@@ -35,22 +36,30 @@ public class Interpreter
                 String first = scanner.next();
                 if (first.charAt(0) == '\"')
                 {
+                    // Quoted string, need to do some more parsing
+                    // Remove opening quote
                     String output = first.substring(1, first.length());
-                    while (output.indexOf("\"") == -1)
+                    if (output.indexOf('\"') == -1)
                     {
-                        String line = scanner.nextLine();
-                        output += line + "\n";
-                    
+                        // Search for ending quote
+                        Pattern pattern = Pattern.compile("[^\"]*\"");
+                        String line = scanner.findInLine(pattern);
+                        while (line == null)
+                        {
+                            // Can't find ending quote on this line, so add it and move to next line
+                            output += scanner.nextLine() + "\n";
+                            line = scanner.findInLine(pattern);
+                        }
+                        // Add ending quote line, including ending quote
+                        output += line;
                     }
-                    output = output.substring(0, output.indexOf("\""));
-                    System.out.println(output);
+                    // Remove ending quote and print
+                    System.out.println(output.substring(0, output.length() - 1));
                 }
-                else
-                {
+                else {
+                    // Unquoted string, just print it
                     System.out.println(first);
-                    scanner.nextLine();
-                }
-                
+                }                
             }
             else if (statement.equals("output"))
             {
@@ -60,7 +69,8 @@ public class Interpreter
             {
                 String varName = scanner.next();
                 int value = evaluateExpression(scanner);
-                if (symbolTable.containsKey(varName)) {
+                if (symbolTable.containsKey(varName))
+                {
                     System.out.println("variable " + varName + " incorrectly re-initialized");
                 }
                 symbolTable.put(varName, value);
@@ -69,7 +79,8 @@ public class Interpreter
             {
                 String varName = scanner.next();
                 int value = evaluateExpression(scanner);
-                if (!symbolTable.containsKey(varName)) {
+                if (!symbolTable.containsKey(varName))
+                {
                     System.out.println("variable " + varName + " not declared");
                 }
                 symbolTable.put(varName, value);
@@ -108,7 +119,8 @@ public class Interpreter
      *      expression: []
      *      evaluation: [16] <-- result
      */
-    public static int evaluateExpression(Scanner scanner) {
+    public static int evaluateExpression(Scanner scanner)
+    {
         Stack<String> expressionStack = new Stack<String>();
         Stack<Integer> evaluationStack = new Stack<Integer>();
 
@@ -117,7 +129,8 @@ public class Interpreter
         // evaluating the expression from back to front
         //
         int numLeft = 1;
-        while (numLeft != 0) {
+        while (numLeft != 0)
+        {
             String token = scanner.next();
             expressionStack.push(token);
             if (token.matches("\\d+") || symbolTable.containsKey(token))
@@ -131,14 +144,16 @@ public class Interpreter
         }
 
         // Iterate until we have gone over the entire expression
-        while (!expressionStack.isEmpty()) {
+        while (!expressionStack.isEmpty())
+        {
             String token = expressionStack.pop();
             if (token.matches("\\d+"))
             {
                 // If the token is an integer, push it on the evaluation stack
                 evaluationStack.push(Integer.parseInt(token));
             }
-            else if (symbolTable.containsKey(token)) {
+            else if (symbolTable.containsKey(token))
+            {
                 // If the token is a variable, push its associated value on the evaluation stack
                 evaluationStack.push(symbolTable.get(token));
             }
@@ -150,10 +165,12 @@ public class Interpreter
                     int operand = evaluationStack.pop();
 
                     // Perform operation and push result onto evaluation stack
-                    if (token.equals("!")) {
+                    if (token.equals("!"))
+                    {
                         evaluationStack.push((operand == 0) ? 1 : 0);
                     }
-                    else if (token.equals("~")) {
+                    else if (token.equals("~"))
+                    {
                         evaluationStack.push(operand * -1);
                     }
                 }
@@ -164,43 +181,56 @@ public class Interpreter
                     int operand2 = evaluationStack.pop();
 
                     // Perform operation and push result onto evaluation stack
-                    if (token.equals("+")) {
+                    if (token.equals("+"))
+                    {
                         evaluationStack.push(operand1 + operand2);
                     }
-                    else if (token.equals("-")) {
+                    else if (token.equals("-"))
+                    {
                         evaluationStack.push(operand1 - operand2);
                     }
-                    else if (token.equals("*")) {
+                    else if (token.equals("*"))
+                    {
                         evaluationStack.push(operand1 * operand2);
                     }
-                    else if (token.equals("/")) {
+                    else if (token.equals("/"))
+                    {
                         evaluationStack.push(operand1 / operand2);
                     }
-                    else if (token.equals("%")) {
+                    else if (token.equals("%"))
+                    {
                         evaluationStack.push(operand1 % operand2);
                     }
-                    else if (token.equals("&&")) {
+                    else if (token.equals("&&"))
+                    {
                         evaluationStack.push((operand1 != 0 && operand2 != 0) ? 1 : 0);
                     }
-                    else if (token.equals("||")) {
+                    else if (token.equals("||"))
+                    {
                         evaluationStack.push((operand1 != 0 || operand2 != 0) ? 1 : 0);
                     }
-                    else if (token.equals(">")) {
+                    else if (token.equals(">"))
+                    {
                         evaluationStack.push((operand1 > operand2) ? 1 : 0);
                     }
-                    else if (token.equals("<")) {
+                    else if (token.equals("<"))
+                    {
                         evaluationStack.push((operand1 < operand2) ? 1 : 0);
                     }
-                    else if (token.equals("==")) {
+                    else if (token.equals("=="))
+                    {
                         evaluationStack.push((operand1 == operand2) ? 1 : 0);
                     }
-                    else if (token.equals("!=")) {
+                    else if (token.equals("!="))
+                    {
                         evaluationStack.push((operand1 != operand2) ? 1 : 0);
                     }
-                    else if (token.equals("<=")) {
+                    else if (token.equals("<="))
+                    {
                         evaluationStack.push((operand1 <= operand2) ? 1 : 0);
                     }
-                    else if (token.equals(">=")) {
+                    else if (token.equals(">="))
+                    {
                         evaluationStack.push((operand1 >= operand2) ? 1 : 0);
                     }
                 }

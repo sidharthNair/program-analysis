@@ -1,5 +1,5 @@
-text "Hello asd asd zxc zcafw a wfa wf aw           awf awd awd awd awda wd
-      asdasdasdasdasdasdasd" // testing lol    
+text "Hello asd adsads  adasd
+   asdadsa dsads " // testing lol    
       text "asd
       asd
 
@@ -10,4 +10,16 @@ text "Hello asd asd zxc zcafw a wfa wf aw           awf awd awd awd awda wd
       f
       gffd
       gffd"
-output 42
+output 42 var x 32 output + x 200 set x + x 50 output x text  "Lorem ipsum dolor sit amet, consectetur adipiscing elit. 
+Fusce malesuada ligula purus, egestas convallis lorem tempus vel. 
+Integer porttitor quam non mauris tincidunt, nec faucibus ipsum fringilla. 
+Vivamus suscipit dui felis, nec tincidunt mauris posuere id. Donec id lorem quam. 
+Aliquam auctor diam vel turpis maximus luctus. Nam sed posuere lacus, at tincidunt purus. 
+Nam semper enim quam, interdum tincidunt quam elementum ut. 
+Fusce viverra tellus ut augue ullamcorper, sed accumsan arcu placerat. 
+Nulla tristique justo ac fermentum condimentum. Proin sit amet semper dui. 
+Pellentesque sem nisi, finibus quis nulla placerat, semper pretium lorem. 
+Donec tempor nisl eu mauris lobortis, vitae sodales felis ultricies. 
+Pellentesque a turpis mauris. 
+Maecenas consectetur posuere lectus sed sollicitudin. Donec fringilla blandit bibendum.   " // ending comment
+output 501102
