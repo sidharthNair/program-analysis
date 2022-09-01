@@ -14,12 +14,12 @@ public class Interpreter
     {
         if (args.length < 1)
         {
-            System.out.println("File path not provided as argument");
-            System.exit(0);
+            System.out.println("Error: Program file path not provided as argument");
+            System.exit(1);
         }
         else if (args.length > 1)
         {
-            System.out.println("WARNING: Unused arguments");
+            System.out.println("Warning: Unused arguments passed to program");
         }
         File program = new File(args[0]);
         Scanner scanner = new Scanner(program);
@@ -87,8 +87,8 @@ public class Interpreter
             }
             else
             {
-                System.out.println("INVALID STATEMENT");
-                System.exit(0);
+                System.out.println("Invalid Statement: " + statement);
+                System.exit(2);
             }
         }
         scanner.close();
@@ -232,6 +232,10 @@ public class Interpreter
                     else if (token.equals(">="))
                     {
                         evaluationStack.push((operand1 >= operand2) ? 1 : 0);
+                    }
+                    else {
+                        System.out.println("Invalid expression term: " + token);
+                        System.exit(3);
                     }
                 }
             }
