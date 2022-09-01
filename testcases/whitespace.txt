@@ -1,15 +1,7 @@
-text "Hello asd adsads  adasd
-   asdadsa dsads " // testing lol    
-      text "asd
-      asd
-
-      gf
-
-      gf
-      d
-      f
-      gffd
-      gffd"
+text "Hello
+line 1
+line 2
+      line 3"
 output 42 var x 32 output + x 200 set x + x 50 output x text  "Lorem ipsum dolor sit amet, consectetur adipiscing elit. 
 Fusce malesuada ligula purus, egestas convallis lorem tempus vel. 
 Integer porttitor quam non mauris tincidunt, nec faucibus ipsum fringilla. 

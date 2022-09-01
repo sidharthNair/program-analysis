@@ -203,11 +203,11 @@ public class Interpreter
                     }
                     else if (token.equals("&&"))
                     {
-                        evaluationStack.push((operand1 != 0 && operand2 != 0) ? 1 : 0);
+                        evaluationStack.push(((operand1 != 0) && (operand2 != 0)) ? 1 : 0);
                     }
                     else if (token.equals("||"))
                     {
-                        evaluationStack.push((operand1 != 0 || operand2 != 0) ? 1 : 0);
+                        evaluationStack.push(((operand1 != 0) || (operand2 != 0)) ? 1 : 0);
                     }
                     else if (token.equals(">"))
                     {
