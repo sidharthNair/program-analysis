@@ -47,23 +47,23 @@ public class Interpreter
                         while (line == null)
                         {
                             // Can't find ending quote on this line, so add it and move to next line
-                            output += scanner.nextLine() + "\n";
+                            output += scanner.nextLine();
                             line = scanner.findInLine(pattern);
                         }
                         // Add ending quote line, including ending quote
                         output += line;
                     }
                     // Remove ending quote and print
-                    System.out.println(output.substring(0, output.length() - 1));
+                    System.out.print(output.substring(0, output.length() - 1).replaceAll("\\\\n", System.lineSeparator()));
                 }
                 else {
                     // Unquoted string, just print it
-                    System.out.println(first);
+                    System.out.print(first.replaceAll("\\\\n", System.lineSeparator()));
                 }                
             }
             else if (statement.equals("output"))
             {
-                System.out.println(evaluateExpression(scanner));
+                System.out.print(evaluateExpression(scanner));
             }
             else if (statement.equals("var"))
             {

@@ -5,35 +5,35 @@ set y 5
 var y 4
 text x:
 output x
-text "y:"
+text "\ny:"
 output y
-text x+y:
+text \nx+y:
 output + x y
-text x-y:
+text \nx-y:
 output - x y
-text x*y:
+text \nx*y:
 output * x y
-text x/y:
+text \nx/y:
 output / x y
-text x%y:
+text \nx%y:
 output % x y
-text x>y:
+text \nx>y:
 output > x y
-text x<y:
+text \nx<y:
 output < x y
-text x<=y:
+text \nx<=y:
 output <= x y
-text x>=y:
+text \nx>=y:
 output >= x y
-text x==y:
+text \nx==y:
 output == x y
-text x!=y:
+text \nx!=y:
 output != x y
-text x&&y:
+text \nx&&y:
 output && x y
-text x||y:
+text \nx||y:
 output || x y
-text !x:
+text \n!x:
 output ! x
-text ~x:
+text \n~x:
 output ~ x
