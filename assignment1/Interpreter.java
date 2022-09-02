@@ -54,11 +54,12 @@ public class Interpreter
                         output += line;
                     }
                     // Remove ending quote and print
-                    System.out.print(output.substring(0, output.length() - 1).replaceAll("\\\\n", System.lineSeparator()));
+                    System.out.print(convertEscapeChars((output.substring(0, output.length() - 1))));
                 }
-                else {
+                else 
+                {
                     // Unquoted string, just print it
-                    System.out.print(first.replaceAll("\\\\n", System.lineSeparator()));
+                    System.out.print(convertEscapeChars(first));
                 }                
             }
             else if (statement.equals("output"))
@@ -157,7 +158,8 @@ public class Interpreter
                 // If the token is a variable, push its associated value on the evaluation stack
                 evaluationStack.push(symbolTable.get(token));
             }
-            else {
+            else 
+            {
                 // Token is an operator, handle the case of unary vs. binary operator
                 if (token.matches("[!~]"))
                 {
@@ -233,7 +235,8 @@ public class Interpreter
                     {
                         evaluationStack.push((operand1 >= operand2) ? 1 : 0);
                     }
-                    else {
+                    else 
+                    {
                         System.out.println("Invalid expression term: " + token);
                         System.exit(3);
                     }
@@ -243,5 +246,20 @@ public class Interpreter
 
         // Final result is a single value on the evaluation stack
         return(evaluationStack.pop());
+    }
+
+    //
+    // To unescape escape characters read in from program.
+    // Escape characters: https://docs.oracle.com/javase/tutorial/java/data/characters.html
+    // Not handling \" and \\ since there are issues with these.
+    //
+    public static String convertEscapeChars(String s)
+    {
+        return s.replaceAll("\\\\t", "\t")
+                .replaceAll("\\\\b", "\b")
+                .replaceAll("\\\\n", "\n")
+                .replaceAll("\\\\r", "\r")
+                .replaceAll("\\\\f", "\f")
+                .replaceAll("\\\\'", "\'");
     }
 }
