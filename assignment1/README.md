@@ -7,6 +7,6 @@ https://github.com/sidharthNair/XMini-Interpreter/blob/main/assignment.pdf
 ## To Run
 Simply run the bash script with the input program:
 
-```./s.sh {file path to program}```
+```./s {file path to program}```
 
 the [testcases](https://github.com/sidharthNair/XMini-Interpreter/tree/main/testcases) folder contains some sample XMini programs
