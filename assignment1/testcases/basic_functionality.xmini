@@ -37,3 +37,4 @@ text \n!x:
 output ! x
 text \n~x:
 output ~ x
+text \n

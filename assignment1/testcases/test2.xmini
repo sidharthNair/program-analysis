@@ -19,9 +19,13 @@ text " should be 0\n"
 output != 3 3
 text " should be 0\n"
 output ~ 42 
-text " should be -42\n"
+text " should be -42\n" //
+
+
+// 
+
 output ! 0 
-text " should be 1\n"
+text " should be 1\n" // testing
 output ! 42 
-text " should be 0\n"
+text " should be 0\n" //
 

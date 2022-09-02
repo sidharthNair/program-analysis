@@ -1,7 +1,7 @@
 text "Hello
-line 1
-line 2
-      line 3\n"
+\n\tline 1
+\nline 2
+\t\t\tline 3\n"
 output 42 var x 32 output + x 200 set x + x 50 output x text  "Lorem ipsum dolor sit amet, consectetur adipiscing elit. \n
 Fusce malesuada ligula purus, egestas convallis lorem tempus vel. \n
 Integer porttitor quam non mauris tincidunt, nec faucibus ipsum fringilla. \n
@@ -13,5 +13,6 @@ Nulla tristique justo ac fermentum condimentum. Proin sit amet semper dui. \n
 Pellentesque sem nisi, finibus quis nulla placerat, semper pretium lorem. \n
 Donec tempor nisl eu mauris lobortis, vitae sodales felis ultricies. \n\n
 Pellentesque a turpis mauris. \n
-Maecenas consectetur posuere lectus sed sollicitudin. Donec fringilla blandit bibendum. \n  " // ending comment
+Maecenas consectetur posuere lectus sed sollicitudin. Donec fringilla blandit bibendum. \n\n\n" // ending comment
 output 501102
+text \n
