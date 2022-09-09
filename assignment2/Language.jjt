@@ -20,9 +20,6 @@ options {
 
 PARSER_BEGIN(Lexer)
 
-/**
- * Simple brace matcher.
- */
 public class Lexer {
 
   /** Main entry point. */
@@ -43,7 +40,6 @@ SKIP: { "\n" }
 SKIP: { "\r" }
 SKIP: { <"//" (~["\r", "\n"])*>}
 
-//start, break, struct, interface, enum, else, const, if, new, printf, read, return, void, for, extends, continue
 TOKEN: { <START: "start"> }
 TOKEN: { <BREAK: "break"> }
 TOKEN: { <STRUCT: "struct"> }
@@ -82,10 +78,11 @@ TOKEN: { <ASSIGN: "="> }
 
 
 /** Root production. */
-void Input() :
+SimpleNode Input() :
 {}
 {
   Program() <EOF>
+  { return jjtThis; }
 }
 
 void Program(): {} { <START> <IDENT> (ConstDecl() | VarDecl() | StructDecl() | EnumDecl() | InterfaceDecl())* "{" (MethodDecl())* "}" }

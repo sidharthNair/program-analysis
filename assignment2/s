@@ -6,9 +6,19 @@ rm -rf lp
 mkdir lp
 
 java -cp javacc-javacc-7.0.11/bootstrap/javacc.jar \
-     org.javacc.parser.Main \
-     -OUTPUT_DIRECTORY=lp \
-     Language.jj
+      jjtree \
+      -OUTPUT_DIRECTORY=lp \
+      Language.jjt
+
+if [ $? -ne 0 ]; then
+        echo "Did not successfully run jjtree"
+        exit 1
+fi
+
+java -cp javacc-javacc-7.0.11/bootstrap/javacc.jar \
+      org.javacc.parser.Main \
+      -OUTPUT_DIRECTORY=lp \
+      lp/Language.jj
 
 if [ $? -ne 0 ]; then
         echo "Did not successfully run javacc"
