@@ -1,0 +1,158 @@
+options {
+  LOOKAHEAD = 1;
+  CHOICE_AMBIGUITY_CHECK = 2;
+  OTHER_AMBIGUITY_CHECK = 1;
+  STATIC = true;
+  DEBUG_PARSER = false;
+  DEBUG_LOOKAHEAD = false;
+  DEBUG_TOKEN_MANAGER = false;
+  ERROR_REPORTING = true;
+  JAVA_UNICODE_ESCAPE = false;
+  UNICODE_INPUT = false;
+  IGNORE_CASE = false;
+  USER_TOKEN_MANAGER = false;
+  USER_CHAR_STREAM = false;
+  BUILD_PARSER = true;
+  BUILD_TOKEN_MANAGER = true;
+  SANITY_CHECK = true;
+  FORCE_LA_CHECK = false;
+}
+
+PARSER_BEGIN(Lexer)
+
+/**
+ * Simple brace matcher.
+ */
+public class Lexer {
+
+  /** Main entry point. */
+  public static void main(String args[]) throws ParseException, java.io.FileNotFoundException {
+    System.out.println(args[0]);
+    Lexer parser = new Lexer(new java.io.BufferedReader(new java.io.FileReader("../" + args[0])));
+    parser.Input();
+    System.out.println("NICE");
+  }
+
+}
+
+PARSER_END(Lexer)
+
+SKIP: { " " }
+SKIP: { "\t" }
+SKIP: { "\n" }
+SKIP: { "\r" }
+SKIP: { <"//" (~["\r", "\n"])*>}
+
+//start, break, struct, interface, enum, else, const, if, new, printf, read, return, void, for, extends, continue
+TOKEN: { <START: "start"> }
+TOKEN: { <BREAK: "break"> }
+TOKEN: { <STRUCT: "struct"> }
+TOKEN: { <INTERFACE: "interface"> }
+TOKEN: { <ENUM: "enum"> }
+TOKEN: { <ELSE: "else"> }
+TOKEN: { <CONST: "const"> }
+TOKEN: { <IF: "if"> }
+TOKEN: { <NEW: "new"> }
+TOKEN: { <PRINTF: "printf"> }
+TOKEN: { <READ: "read"> }
+TOKEN: { <RETURN: "return"> }
+TOKEN: { <VOID: "void"> }
+TOKEN: { <FOR: "for"> }
+TOKEN: { <EXTENDS: "extends"> }
+TOKEN: { <IMPLEMENTS: "implements"> }
+TOKEN: { <CONTINUE: "continue"> }
+TOKEN: { <IDENT: (["a"-"z"] | ["A"-"Z"]) ((["a"-"z"] | ["A"-"Z"]) | ["0"-"9"] | "_")*> }
+TOKEN: { <NUMCONST: ["0"-"9"] (["0"-"9"])*> }
+TOKEN: { <CHARCONST: "'" [" "-"~"] "'"> }
+TOKEN: { <BOOLEANCONST: ("True" | "False")> }
+TOKEN: { <PLUS: "+"> }
+TOKEN: { <MINUS: "-"> }
+TOKEN: { <MULTIPLY: "*"> }
+TOKEN: { <DIVIDE: "/"> }
+TOKEN: { <MODULO: "%"> }
+TOKEN: { <EQUAL_TO: "=="> }
+TOKEN: { <NOT_EQUAL_TO: "!="> }
+TOKEN: { <GREATER_THAN: ">"> }
+TOKEN: { <GREATER_THAN_OR_EQUAL_TO: ">="> }
+TOKEN: { <LESS_THAN: "<"> }
+TOKEN: { <LESS_THAN_OR_EQUAL_TO: "<="> }
+TOKEN: { <AND: "&&"> }
+TOKEN: { <OR: "||"> }
+TOKEN: { <ASSIGN: "="> }
+
+
+/** Root production. */
+void Input() :
+{}
+{
+  Program() <EOF>
+}
+
+void Program(): {} { <START> <IDENT> (ConstDecl() | VarDecl() | StructDecl() | EnumDecl() | InterfaceDecl())* "{" (MethodDecl())* "}" }
+
+void ConstDecl(): {} { <CONST> Type() <IDENT> "=" (<NUMCONST> | <CHARCONST>| <BOOLEANCONST>) ("," <IDENT> "=" (<NUMCONST> | <CHARCONST> | <BOOLEANCONST>))* ";" }
+
+void EnumDecl(): {} { <ENUM> <IDENT> "{" <IDENT> ["=" <NUMCONST>] ("," <IDENT> ("=" <NUMCONST>)?)* "}" }
+
+void VarDecl(): {} { Type() <IDENT> ("[" "]")? ("," <IDENT> ("[" "]")?)* ";" }
+
+void StructDecl(): {} { <STRUCT> <IDENT> (<EXTENDS> Type())? (<IMPLEMENTS> Type() ("," Type())*)? "{"  (VarDecl())* ("{" (MethodDecl())* "}")? "}" }
+
+void InterfaceDecl(): {} { <INTERFACE> <IDENT> "{" (InterfaceMethodDecl())* "}" }
+
+void InterfaceMethodDecl(): {} { (Type() | <VOID>) <IDENT> "(" (FormPars())? ")" ";" }
+
+void MethodDecl(): {} { (Type() | <VOID>) <IDENT> "(" (FormPars())? ")" (VarDecl())* "{" (Stmt())* "}" }
+
+void FormPars(): {} { Type() <IDENT> ("[" "]")? ("," Type() <IDENT> ("[" "]")?)* }
+
+void Type(): {} { <IDENT> }
+
+void Stmt():
+{}
+{
+  (DesignatorStmt() ";")
+  | (<IF> "(" Condition() ")" Stmt() (<ELSE> Stmt())?)
+  | (<FOR> "(" (DesignatorStmt())? ";" (Condition())? ";" (DesignatorStmt())? ")" Stmt())
+  | (<BREAK> ";")
+  | (<CONTINUE> ";")
+  | (<RETURN> (Expression())? ";")
+  | (<READ> "(" Designator() ")" ";")
+  | (<PRINTF> "(" Expression() ("," <NUMCONST>)? ")" ";")
+  | ("{" (Stmt())* "}")
+}
+
+void DesignatorStmt(): {} { Designator() (Assignop() Expression() | ("(" (ActPars())? ")") | "++" | "--") }
+
+void ActPars(): {} { Expression() ("," Expression())* }
+
+void Condition(): {} { CondTerm() ("||" CondTerm())* }
+
+void CondTerm(): {} { CondFact() ("&&" CondFact())* }
+
+void CondFact(): {} { Expression() (Relop() Expression())? }
+
+void Expression(): {} { ("-")? Term() (Addop() Term())* }
+
+void Term(): {} { Factor() (Mulop() Factor())* }
+
+void Factor():
+{} 
+{ 
+  Designator() (("(" (ActPars())? ")")?) 
+                | <NUMCONST> 
+                | <CHARCONST> 
+                | <BOOLEANCONST> 
+                | (<NEW> Type() ("[" Expression() "]")?) 
+                | ("(" Expression() ")")
+}
+
+void Designator(): {} { <IDENT> (("." <IDENT>) | ("[" Expression() "]"))* }
+
+void Assignop(): {} { <ASSIGN> }
+
+void Relop(): {} { <EQUAL_TO> | <NOT_EQUAL_TO> | <GREATER_THAN> | <GREATER_THAN_OR_EQUAL_TO> | <LESS_THAN> | <LESS_THAN_OR_EQUAL_TO> }
+
+void Addop(): {} { <PLUS> | <MINUS> }
+
+void Mulop(): {} { <MULTIPLY> | <DIVIDE> | <MODULO> }

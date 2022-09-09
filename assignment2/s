@@ -1,0 +1,21 @@
+#!/bin/bash
+
+# https://github.com/javacc/javacc/archive/javacc-7.0.11.tar.gz
+
+rm -rf lp
+mkdir lp
+
+java -cp javacc-javacc-7.0.11/bootstrap/javacc.jar \
+     org.javacc.parser.Main \
+     -OUTPUT_DIRECTORY=lp \
+     Language.jj
+
+if [ $? -ne 0 ]; then
+        echo "Did not successfully run javacc"
+        exit 1
+fi
+
+( cd lp
+  javac *.java
+  java -cp . Lexer $1
+)
