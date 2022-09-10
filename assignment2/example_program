@@ -1,5 +1,5 @@
 start P
-const int size = 10;
+const int size = 10, lol = 4, y = 3;
 enum Num { ZERO, ONE, TEN = 10 }
 interface I {
     int getp(int i);

@@ -1,33 +1,25 @@
 options {
-  LOOKAHEAD = 1;
-  CHOICE_AMBIGUITY_CHECK = 2;
-  OTHER_AMBIGUITY_CHECK = 1;
-  STATIC = true;
-  DEBUG_PARSER = false;
-  DEBUG_LOOKAHEAD = false;
-  DEBUG_TOKEN_MANAGER = false;
-  ERROR_REPORTING = true;
-  JAVA_UNICODE_ESCAPE = false;
-  UNICODE_INPUT = false;
-  IGNORE_CASE = false;
-  USER_TOKEN_MANAGER = false;
-  USER_CHAR_STREAM = false;
-  BUILD_PARSER = true;
-  BUILD_TOKEN_MANAGER = true;
-  SANITY_CHECK = true;
-  FORCE_LA_CHECK = false;
+  VISITOR=true;
+  MULTI=true;
+  NODE_DEFAULT_VOID=true;
 }
 
 PARSER_BEGIN(Lexer)
 
+import java.io.FileNotFoundException;
+import java.io.FileReader;
+import java.io.BufferedReader;
+import java.util.HashMap;
+
 public class Lexer {
 
-  /** Main entry point. */
-  public static void main(String args[]) throws ParseException, java.io.FileNotFoundException {
-    System.out.println(args[0]);
-    Lexer parser = new Lexer(new java.io.BufferedReader(new java.io.FileReader("../" + args[0])));
-    parser.Input();
-    System.out.println("NICE");
+  public static HashMap<String, Integer> symbolTable = new HashMap<String, Integer>();
+
+  public static void main(String args[]) throws ParseException, FileNotFoundException {
+    Lexer parser = new Lexer(new BufferedReader(new FileReader(args[0])));
+    ASTStart n = parser.Start();
+    TestingVisitor v = new TestingVisitor();
+    n.jjtAccept(v, null);
   }
 
 }
@@ -76,80 +68,303 @@ TOKEN: { <AND: "&&"> }
 TOKEN: { <OR: "||"> }
 TOKEN: { <ASSIGN: "="> }
 
-
-/** Root production. */
-SimpleNode Input() :
+ASTStart Start() #Start :
 {}
 {
   Program() <EOF>
   { return jjtThis; }
 }
 
-void Program(): {} { <START> <IDENT> (ConstDecl() | VarDecl() | StructDecl() | EnumDecl() | InterfaceDecl())* "{" (MethodDecl())* "}" }
+// <START> <IDENT> (ConstDecl() | VarDecl() | StructDecl() | EnumDecl() | InterfaceDecl())* "{" (MethodDecl())* "}"
+void Program() #Program :
+{
+  Token t;
+}
+{
+  <START>
+  t = <IDENT>
+  { jjtThis.name = t.image; }
+  (ConstDecl() | VarDecl() | StructDecl() | EnumDecl() | InterfaceDecl())* "{" (MethodDecl())* "}"
+}
 
-void ConstDecl(): {} { <CONST> Type() <IDENT> "=" (<NUMCONST> | <CHARCONST>| <BOOLEANCONST>) ("," <IDENT> "=" (<NUMCONST> | <CHARCONST> | <BOOLEANCONST>))* ";" }
+void ConstDecl() #ConstDecl :
+{
+  Token t;
+}
+{
+  <CONST>
+  t = Type() { jjtThis.type = t.image; }
+  Const() ("," Const())* ";"
+}
 
-void EnumDecl(): {} { <ENUM> <IDENT> "{" <IDENT> ["=" <NUMCONST>] ("," <IDENT> ("=" <NUMCONST>)?)* "}" }
+void Const() #Const :
+{
+  Token t;
+}
+{
+  t = <IDENT> { jjtThis.name = t.image; }
+  "="
+  t = constVal() { jjtThis.value = t.image; }
+}
 
-void VarDecl(): {} { Type() <IDENT> ("[" "]")? ("," <IDENT> ("[" "]")?)* ";" }
+Token constVal() :
+{
+  Token t;
+}
+{
+  (t = <NUMCONST> | t = <CHARCONST> | t = <BOOLEANCONST>)
+  { return t; }
+}
 
-void StructDecl(): {} { <STRUCT> <IDENT> (<EXTENDS> Type())? (<IMPLEMENTS> Type() ("," Type())*)? "{"  (VarDecl())* ("{" (MethodDecl())* "}")? "}" }
+void EnumDecl() #EnumDecl :
+{
+  int val = 0;
+  Token t;
+}
+{
+  <ENUM>
+  t = <IDENT> { jjtThis.name = t.image; }
+  "{"
+  val = Enum(val)
+  (","
+  val = Enum(val)
+  )* "}"
+}
 
-void InterfaceDecl(): {} { <INTERFACE> <IDENT> "{" (InterfaceMethodDecl())* "}" }
+int Enum(int val) #Enum :
+{
+  Token t;
+}
+{
+  t = <IDENT> { jjtThis.name = t.image; }
+  ("="
+  t = <NUMCONST> { val = Integer.parseInt(t.image); }
+  )?
+  { jjtThis.value = val; }
+  { return val + 1; }
+}
 
-void InterfaceMethodDecl(): {} { (Type() | <VOID>) <IDENT> "(" (FormPars())? ")" ";" }
+void VarDecl() #VarDecl :
+{
+  Token t;
+  boolean isArr = false;
+}
+{
+  t = Type() { jjtThis.type = t.image; }
+  Var()
+  (","
+  Var()
+  )* ";"
+}
 
-void MethodDecl(): {} { (Type() | <VOID>) <IDENT> "(" (FormPars())? ")" (VarDecl())* "{" (Stmt())* "}" }
+void Var() #Var :
+{
+  Token t;
+  boolean isArr = false;
+}
+{
+  t = <IDENT> { jjtThis.name = t.image; }
+  ("[" "]" { isArr = true; })?
+  { jjtThis.isArray = isArr; }
+}
 
-void FormPars(): {} { Type() <IDENT> ("[" "]")? ("," Type() <IDENT> ("[" "]")?)* }
+void StructDecl() #StructDecl :
+{
+  Token t;
+}
+{
+  <STRUCT>
+  t = <IDENT> { jjtThis.name = t.image; }
+  (<EXTENDS> t = Type() { jjtThis.parent = t.image; })?
+  (<IMPLEMENTS> t = Type() { jjtThis.interfaces.add(t.image); }
+  ("," t = Type() { jjtThis.interfaces.add(t.image); })*)?
+  "{"  (VarDecl())* ("{" (MethodDecl())* "}")? "}"
+}
 
-void Type(): {} { <IDENT> }
+void InterfaceDecl() #InterfaceDecl :
+{
+  Token t;
+}
+{
+  <INTERFACE>
+  t = <IDENT> { jjtThis.name = t.image; }
+  "{" (InterfaceMethodDecl())* "}"
+}
 
-void Stmt():
+void InterfaceMethodDecl() #InterfaceMethodDecl:
+{
+  Token t;
+}
+{
+  (t = Type() | t = <VOID> { jjtThis.returnType = t.image; })
+  t = <IDENT> { jjtThis.name = t.image; }
+  "(" (FormPars())? ")" ";"
+}
+
+void MethodDecl() #MethodDecl :
+{
+  Token t;
+}
+{
+  (t = Type() | t = <VOID> { jjtThis.returnType = t.image; })
+  t = <IDENT> { jjtThis.name = t.image; }
+  "(" (FormPars())? ")" (VarDecl())* "{" (Stmt())* "}"
+}
+
+// Type() <IDENT> ("[" "]")? ("," Type() <IDENT> ("[" "]")?)*
+void FormPars() #FormPars:
 {}
 {
-  (DesignatorStmt() ";")
-  | (<IF> "(" Condition() ")" Stmt() (<ELSE> Stmt())?)
-  | (<FOR> "(" (DesignatorStmt())? ";" (Condition())? ";" (DesignatorStmt())? ")" Stmt())
-  | (<BREAK> ";")
-  | (<CONTINUE> ";")
-  | (<RETURN> (Expression())? ";")
-  | (<READ> "(" Designator() ")" ";")
-  | (<PRINTF> "(" Expression() ("," <NUMCONST>)? ")" ";")
-  | ("{" (Stmt())* "}")
+  Parameter() ("," Parameter())*
 }
 
-void DesignatorStmt(): {} { Designator() (Assignop() Expression() | ("(" (ActPars())? ")") | "++" | "--") }
-
-void ActPars(): {} { Expression() ("," Expression())* }
-
-void Condition(): {} { CondTerm() ("||" CondTerm())* }
-
-void CondTerm(): {} { CondFact() ("&&" CondFact())* }
-
-void CondFact(): {} { Expression() (Relop() Expression())? }
-
-void Expression(): {} { ("-")? Term() (Addop() Term())* }
-
-void Term(): {} { Factor() (Mulop() Factor())* }
-
-void Factor():
-{} 
-{ 
-  Designator() (("(" (ActPars())? ")")?) 
-                | <NUMCONST> 
-                | <CHARCONST> 
-                | <BOOLEANCONST> 
-                | (<NEW> Type() ("[" Expression() "]")?) 
-                | ("(" Expression() ")")
+void Parameter() #Parameter:
+{
+  Token t;
+  boolean isArr = false;
+}
+{
+  t = Type() { jjtThis.type = t.image; }
+  t = <IDENT> { jjtThis.name = t.image; }
+  ("[" "]" { isArr = true; })?
+  { jjtThis.isArray = isArr; }
 }
 
-void Designator(): {} { <IDENT> (("." <IDENT>) | ("[" Expression() "]"))* }
+Token Type():
+{
+  Token t;
+}
+{
+  t = <IDENT>
+  { return t; }
+}
 
-void Assignop(): {} { <ASSIGN> }
+void Stmt() #Stmt:
+{
+  Token t;
+}
+{
+  (DesignatorStmt() ";" { jjtThis.type = StmtType.DESIGNATOR; })
+  | (<IF> "(" Condition() ")" Stmt() { jjtThis.type = StmtType.IF; } (<ELSE> Stmt() { jjtThis.type = StmtType.IF_ELSE; })?)
+  | (<FOR> "("
+              (DesignatorStmt() { jjtThis.forMask |= 1; })? ";"
+              (Condition() { jjtThis.forMask |= 2; })? ";"
+              (DesignatorStmt() { jjtThis.forMask |= 4; })?
+            ")" Stmt() { jjtThis.type = StmtType.FOR; } )
+  | (<BREAK> ";" { jjtThis.type = StmtType.BREAK; })
+  | (<CONTINUE> ";" { jjtThis.type = StmtType.CONTINUE; })
+  | (<RETURN> (Expression())? ";" { jjtThis.type = StmtType.RETURN; })
+  | (<READ> "(" Designator() ")" ";" { jjtThis.type = StmtType.READ; })
+  | (<PRINTF> "(" Expression()
+              ("," t = <NUMCONST> { jjtThis.printNums.add(Integer.parseInt(t.image)); })?
+              ")" ";" { jjtThis.type = StmtType.PRINTF; })
+  | ("{" (Stmt())* "}" { jjtThis.type = StmtType.BLOCK; })
+}
 
-void Relop(): {} { <EQUAL_TO> | <NOT_EQUAL_TO> | <GREATER_THAN> | <GREATER_THAN_OR_EQUAL_TO> | <LESS_THAN> | <LESS_THAN_OR_EQUAL_TO> }
+void DesignatorStmt() #DesignatorStmt:
+{}
+{
+  Designator() ((Assignop() Expression())
+                | ("(" (ActPars())? ")")
+                | ("++" { jjtThis.increment = true; })
+                | ("--" { jjtThis.decrement = true; }))
+}
 
-void Addop(): {} { <PLUS> | <MINUS> }
+void ActPars() #ActPars:
+{}
+{
+  Expression() ("," Expression())*
+}
 
-void Mulop(): {} { <MULTIPLY> | <DIVIDE> | <MODULO> }
+void Condition() #Condition:
+{}
+{
+  CondTerm() ("||" CondTerm())*
+}
+
+void CondTerm() #CondTerm:
+{}
+{
+  CondFact() ("&&" CondFact())*
+}
+
+void CondFact() #CondFact:
+{}
+{
+  Expression() (Relop() Expression())?
+}
+
+void Expression() #Expression:
+{}
+{
+  ("-" { jjtThis.leadingMinus = true; })? Term() (Addop() Term())*
+}
+
+void Term() #Term:
+{}
+{
+  Factor() (Mulop() Factor())*
+}
+
+void Factor() #Factor:
+{
+  Token t;
+}
+{
+  (Designator() { jjtThis.type = FactorType.DESIGNATOR; } ("(" (ActPars())? ")" { jjtThis.type = FactorType.ACTPARS; })?)
+  | (t = <NUMCONST> { jjtThis.type = FactorType.NUMCONST; jjtThis.numConst = Integer.parseInt(t.image); })
+  | (t = <CHARCONST> { jjtThis.type = FactorType.CHARCONST; jjtThis.charConst = t.image; })
+  | (t = <BOOLEANCONST> { jjtThis.type = FactorType.BOOLCONST; jjtThis.boolConst = Boolean.parseBoolean(t.image); })
+  | (<NEW> Type() ("[" Expression() "]")? { jjtThis.type = FactorType.NEW; })
+  | ("(" Expression() ")" { jjtThis.type = FactorType.EXPRESSION; })
+}
+
+void Designator() #Designator:
+{
+  Token t;
+  int childIndex = 0;
+}
+{
+  t = <IDENT> { jjtThis.name = t.image; }
+  (("." t = <IDENT> { jjtThis.modifiers.add(t.image); })
+   | ("[" Expression() "]" { jjtThis.modifiers.add("" + childIndex++); }))*
+}
+
+void Assignop() #Assignop:
+{}
+{
+  <ASSIGN>
+}
+
+void Relop() #Relop:
+{
+  Token t;
+}
+{
+  t = <EQUAL_TO>
+  | t = <NOT_EQUAL_TO>
+  | t = <GREATER_THAN>
+  | t = <GREATER_THAN_OR_EQUAL_TO>
+  | t = <LESS_THAN>
+  | t = <LESS_THAN_OR_EQUAL_TO>
+  { jjtThis.relation = t.image; }
+
+}
+
+void Addop() #Addop:
+{
+  Token t;
+}
+{
+  t = <PLUS> | t = <MINUS>
+  { jjtThis.operator = t.image; }
+}
+
+void Mulop() #Mulop:
+{
+  Token t;
+}
+{
+  t = <MULTIPLY> | t = <DIVIDE> | t = <MODULO>
+  { jjtThis.operator = t.image; }
+}
