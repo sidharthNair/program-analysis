@@ -17,6 +17,7 @@ public class ASTFactor extends SimpleNode {
   int numConst;
   String charConst;
   boolean boolConst;
+  String dataType;
 
   public ASTFactor(int id) {
     super(id);

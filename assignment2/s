@@ -27,7 +27,7 @@ if [ $? -ne 0 ]; then
         exit 2
 fi
 
-cp *Visitor.java $DIR_NAME/
+cp *.java $DIR_NAME/
 
 ( cd $DIR_NAME
   javac *.java

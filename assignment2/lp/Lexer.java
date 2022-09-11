@@ -6,13 +6,11 @@ import java.util.HashMap;
 
 public class Lexer/*@bgen(jjtree)*/implements LexerTreeConstants, LexerConstants {/*@bgen(jjtree)*/
   protected static JJTLexerState jjtree = new JJTLexerState();
-  public static HashMap<String, Integer> symbolTable = new HashMap<String, Integer>();
-
   public static void main(String args[]) throws ParseException, FileNotFoundException {
     Lexer parser = new Lexer(new BufferedReader(new FileReader(args[0])));
     ASTStart n = parser.Start();
-    TestingVisitor v = new TestingVisitor();
-    n.jjtAccept(v, null);
+    UndeclaredVisitor uv = new UndeclaredVisitor();
+    n.jjtAccept(uv, null);
   }
 
   static final public ASTStart Start() throws ParseException {
@@ -48,7 +46,6 @@ public class Lexer/*@bgen(jjtree)*/implements LexerTreeConstants, LexerConstants
     throw new Error("Missing return statement in function");
   }
 
-// <START> <IDENT> (ConstDecl() | VarDecl() | StructDecl() | EnumDecl() | InterfaceDecl())* "{" (MethodDecl())* "}"
   static final public void Program() throws ParseException {
  /*@bgen(jjtree) Program */
   ASTProgram jjtn000 = new ASTProgram(JJTPROGRAM);
@@ -665,7 +662,6 @@ public class Lexer/*@bgen(jjtree)*/implements LexerTreeConstants, LexerConstants
     }
   }
 
-// Type() <IDENT> ("[" "]")? ("," Type() <IDENT> ("[" "]")?)*
   static final public void FormPars() throws ParseException {
  /*@bgen(jjtree) FormPars */
   ASTFormPars jjtn000 = new ASTFormPars(JJTFORMPARS);
@@ -1335,7 +1331,8 @@ public class Lexer/*@bgen(jjtree)*/implements LexerTreeConstants, LexerConstants
         break;
       case NEW:
         jj_consume_token(NEW);
-        Type();
+        t = Type();
+                        jjtn000.dataType = t.image;
         switch ((jj_ntk==-1)?jj_ntk():jj_ntk) {
         case 45:
           jj_consume_token(45);
@@ -1346,9 +1343,9 @@ public class Lexer/*@bgen(jjtree)*/implements LexerTreeConstants, LexerConstants
           jj_la1[43] = jj_gen;
           ;
         }
-                                            jjtree.closeNodeScope(jjtn000, true);
-                                            jjtc000 = false;
-                                            jjtn000.type = FactorType.NEW;
+                                                                                jjtree.closeNodeScope(jjtn000, true);
+                                                                                jjtc000 = false;
+                                                                                jjtn000.type = FactorType.NEW;
         break;
       case 47:
         jj_consume_token(47);

@@ -13,13 +13,11 @@ import java.util.HashMap;
 
 public class Lexer {
 
-  public static HashMap<String, Integer> symbolTable = new HashMap<String, Integer>();
-
   public static void main(String args[]) throws ParseException, FileNotFoundException {
     Lexer parser = new Lexer(new BufferedReader(new FileReader(args[0])));
     ASTStart n = parser.Start();
-    TestingVisitor v = new TestingVisitor();
-    n.jjtAccept(v, null);
+    UndeclaredVisitor uv = new UndeclaredVisitor();
+    n.jjtAccept(uv, null);
   }
 
 }
@@ -75,7 +73,6 @@ ASTStart Start() #Start :
   { return jjtThis; }
 }
 
-// <START> <IDENT> (ConstDecl() | VarDecl() | StructDecl() | EnumDecl() | InterfaceDecl())* "{" (MethodDecl())* "}"
 void Program() #Program :
 {
   Token t;
@@ -211,7 +208,6 @@ void MethodDecl() #MethodDecl :
   "(" (FormPars())? ")" (VarDecl())* "{" (Stmt())* "}"
 }
 
-// Type() <IDENT> ("[" "]")? ("," Type() <IDENT> ("[" "]")?)*
 void FormPars() #FormPars:
 {}
 {
@@ -315,7 +311,7 @@ void Factor() #Factor:
   | (t = <NUMCONST> { jjtThis.type = FactorType.NUMCONST; jjtThis.numConst = Integer.parseInt(t.image); })
   | (t = <CHARCONST> { jjtThis.type = FactorType.CHARCONST; jjtThis.charConst = t.image; })
   | (t = <BOOLEANCONST> { jjtThis.type = FactorType.BOOLCONST; jjtThis.boolConst = Boolean.parseBoolean(t.image); })
-  | (<NEW> Type() ("[" Expression() "]")? { jjtThis.type = FactorType.NEW; })
+  | (<NEW> t = Type() { jjtThis.dataType = t.image; } ("[" Expression() "]")? { jjtThis.type = FactorType.NEW; })
   | ("(" Expression() ")" { jjtThis.type = FactorType.EXPRESSION; })
 }
 

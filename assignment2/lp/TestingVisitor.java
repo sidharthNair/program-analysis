@@ -14,52 +14,52 @@ public class TestingVisitor implements LexerVisitor {
     }
 
     public Object visit(ASTProgram node, Object data) {
-        System.out.println("Program Name: " + node.name);
+        // System.out.println("Program Name: " + node.name);
         node.childrenAccept(this, data);
         return null;
     }
 
     public Object visit(ASTConstDecl node, Object data) {
-        System.out.print("Const Type: " + node.type + " -- ");
+        // System.out.print("Const Type: " + node.type + " -- ");
         node.childrenAccept(this, data);
-        System.out.println();
+        // System.out.println();
         return null;
     }
 
     public Object visit(ASTConst node, Object data) {
-        System.out.print("(" + node.name + "," + node.value + ")");
+        // System.out.print("(" + node.name + "," + node.value + ")");
         node.childrenAccept(this, data);
         return null;
     }
 
     public Object visit(ASTEnumDecl node, Object data) {
-        System.out.print("Enum Name: " + node.name + " -- ");
+        // System.out.print("Enum Name: " + node.name + " -- ");
         node.childrenAccept(this, data);
-        System.out.println();
+        // System.out.println();
         return null;
     }
 
     public Object visit(ASTEnum node, Object data) {
-        System.out.print("(" + node.name + "," + node.value + ")");
+        // System.out.print("(" + node.name + "," + node.value + ")");
         node.childrenAccept(this, data);
         return null;
     }
 
     public Object visit(ASTVarDecl node, Object data) {
-        System.out.print("Var Type: " + node.type + " -- ");
+        // System.out.print("Var Type: " + node.type + " -- ");
         node.childrenAccept(this, data);
-        System.out.println();
+        // System.out.println();
         return null;
     }
 
     public Object visit(ASTVar node, Object data) {
-        System.out.print("(" + node.name + "," + node.isArray + ")");
+        // System.out.print("(" + node.name + "," + node.isArray + ")");
         node.childrenAccept(this, data);
         return null;
     }
 
     public Object visit(ASTStructDecl node, Object data) {
-        System.out.println("Struct: " + node.name + ", parent: " + node.parent + ", implements: " + node.interfaces.toString());
+        // System.out.println("Struct: " + node.name + ", parent: " + node.parent + ", implements: " + node.interfaces.toString());
         node.childrenAccept(this, data);
         return null;
     }
@@ -75,9 +75,9 @@ public class TestingVisitor implements LexerVisitor {
     }
 
     public Object visit(ASTMethodDecl node, Object data) {
-        System.out.print("Method: " + node.name + ", parameters: ");
+        // System.out.print("Method: " + node.name + ", parameters: ");
         node.childrenAccept(this, data);
-        System.out.println();
+        // System.out.println();
         return null;
     }
 
@@ -87,7 +87,7 @@ public class TestingVisitor implements LexerVisitor {
     }
 
     public Object visit(ASTParameter node, Object data) {
-        System.out.print("(" + node.type + "," + node.name +  "," + node.isArray +")");
+        // System.out.print("(" + node.type + "," + node.name +  "," + node.isArray +")");
         node.childrenAccept(this, data);
         return null;
     }
@@ -138,6 +138,17 @@ public class TestingVisitor implements LexerVisitor {
     }
 
     public Object visit(ASTDesignator node, Object data) {
+        System.out.print(node.name);
+        for (int i = 0; i < node.modifiers.size(); i++) {
+            try {
+                int idx = Integer.parseInt(node.modifiers.get(i));
+                System.out.print("[Expression " + idx + "]");
+            }
+            catch (Exception e) {
+                System.out.print("." + node.modifiers.get(0));
+            }
+        }
+        System.out.println();
         node.childrenAccept(this, data);
         return null;
     }
