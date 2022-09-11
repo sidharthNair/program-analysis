@@ -14,7 +14,6 @@ start P
             int getp (int idx) { return pos[idx]; }
             int getn (int idx) { return neg[idx]; }
             int getx () { return x; }
-            int getx (int idx) { }
             int gety () { return y; }
         }
     }
@@ -26,6 +25,13 @@ start P
         {
             x = arg;
             length(x);
+        }
+
+    int must(int b)
+        int a;
+        {
+            a = 5;
+            return a;
         }
 
     void main()

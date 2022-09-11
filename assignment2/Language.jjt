@@ -20,6 +20,8 @@ public class Lexer {
     n.jjtAccept(uv, null);
     DuplicateStructMethodVisitor dv = new DuplicateStructMethodVisitor();
     n.jjtAccept(dv, null);
+    MustVisitor mv = new MustVisitor();
+    n.jjtAccept(mv, null);
   }
 
 }
@@ -205,7 +207,7 @@ void MethodDecl() #MethodDecl :
   Token t;
 }
 {
-  (t = Type() | t = <VOID> { jjtThis.returnType = t.image; })
+  (t = Type() { jjtThis.returnType = t.image; } | t = <VOID> { jjtThis.returnType = t.image; })
   t = <IDENT> { jjtThis.name = t.image; }
   "(" (FormPars())? ")" (VarDecl())* "{" (Stmt())* "}"
 }
