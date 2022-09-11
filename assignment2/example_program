@@ -14,6 +14,7 @@ start P
             int getp (int idx) { return pos[idx]; }
             int getn (int idx) { return neg[idx]; }
             int getx () { return x; }
+            int getx (int idx) { }
             int gety () { return y; }
         }
     }

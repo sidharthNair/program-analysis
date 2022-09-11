@@ -11,6 +11,8 @@ public class Lexer/*@bgen(jjtree)*/implements LexerTreeConstants, LexerConstants
     ASTStart n = parser.Start();
     UndeclaredVisitor uv = new UndeclaredVisitor();
     n.jjtAccept(uv, null);
+    DuplicateStructMethodVisitor dv = new DuplicateStructMethodVisitor();
+    n.jjtAccept(dv, null);
   }
 
   static final public ASTStart Start() throws ParseException {

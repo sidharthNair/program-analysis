@@ -26,7 +26,7 @@ public class UndeclaredVisitor implements LexerVisitor {
         node.childrenAccept(this, data);
         System.out.println("\n======================== SCOPE TREE ========================\n");
         root.printScopeTree("");
-        System.out.println("\nSUCCESS: ALL VARIABLE AND METHOD NAMES DECLARED BEFORE USE");
+        System.out.println("\nSUCCESS: ALL VARIABLE AND METHOD NAMES DECLARED BEFORE USE\n");
         return null;
     }
 
