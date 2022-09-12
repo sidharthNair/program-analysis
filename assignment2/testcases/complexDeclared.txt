@@ -1,0 +1,71 @@
+start testing
+    enum dayOfWeek {
+        SUNDAY,
+        MONDAY,
+        TUESDAY,
+        WEDNESDAY,
+        THURSDAY,
+        FRIDAY,
+        SATURDAY
+    }
+    struct Object {
+        int id;
+        int mem_size;
+        {
+            int getid() { return id; }
+            int size() { return size; }
+        }
+    }
+    struct Person extends Object {
+        char firstInitial;
+        char secondInitial;
+        int age;
+    }
+
+    struct Employee extends Person {
+        int job_id;
+        int pay;
+        dayOfWeek workingDays[];
+        {
+            dayOfWeek firstWorkingDay() { return workingDays[0]; }
+        }
+    }
+
+    struct Boss extends Employee {
+        int numSubordinates;
+        Employee employees[];
+        {
+            void addSubordinate(Employee e) { employees[numSubordinates] = e; numSubordinates++; }
+            int getNumWorkingFor() { return numSubordinates; }
+        }
+    }
+{
+    int must(Boss b)
+        int a;
+        {
+            a = 5;
+            return a;
+        }
+
+    void main()
+        Boss b;
+        Employee e;
+        int i;
+        {
+            printf (i);
+            b = new Boss;
+            b.job_id = must(b);
+            b.pay = 1000;
+            b.workingDays = new dayOfWeek[5];
+            for (i = 0; i < 5; i++)
+            {
+                b.workingDays[i] = dayOfWeek.MONDAY + i;
+            }
+            b.mem_size = 10;
+            printf (b.size());
+            printf (b.firstWorkingDay());
+            printf (dayOfWeek.SUNDAY);
+            b.addSubordinate(e);
+            printf (b.getNumWorkingFor());
+        }
+}

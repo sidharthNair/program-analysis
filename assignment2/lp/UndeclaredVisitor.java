@@ -8,7 +8,9 @@ enum IdentifierType {
     DOT,
     ARRAY_INDEX,
     EXTENDS,
-    IMPLEMENTS
+    IMPLEMENTS,
+    RETURN_TYPE,
+    DECL_TYPE,
 }
 
 public class UndeclaredVisitor implements LexerVisitor {
@@ -45,6 +47,10 @@ public class UndeclaredVisitor implements LexerVisitor {
 
     public Object visit(ASTConst node, Object data) {
         ScopeNode curr = (ScopeNode) data;
+        String type = ((ASTConstDecl) node.jjtGetParent()).type;
+        if (curr.checkDeclared(type, IdentifierType.DECL_TYPE) == null) {
+            halt(type);
+        }
         curr.addSymbol(node.name, ((ASTConstDecl) node.jjtGetParent()).type);
         node.childrenAccept(this, data);
         return null;
@@ -71,7 +77,11 @@ public class UndeclaredVisitor implements LexerVisitor {
 
     public Object visit(ASTVar node, Object data) {
         ScopeNode curr = (ScopeNode) data;
-        curr.addSymbol(node.name, ((ASTVarDecl) node.jjtGetParent()).type + (node.isArray ? "[]" : ""));
+        String type = ((ASTVarDecl) node.jjtGetParent()).type;
+        if (curr.checkDeclared(type, IdentifierType.DECL_TYPE) == null) {
+            halt(type);
+        }
+        curr.addSymbol(node.name, type + (node.isArray ? "[]" : ""));
         node.childrenAccept(this, data);
         return null;
     }
@@ -103,6 +113,10 @@ public class UndeclaredVisitor implements LexerVisitor {
 
     public Object visit(ASTInterfaceMethodDecl node, Object data) {
         ScopeNode curr = (ScopeNode) data;
+        String returnType = node.returnType;
+        if (curr.checkDeclared(returnType, IdentifierType.RETURN_TYPE) == null) {
+            halt(returnType);
+        }
         curr.addSymbol(node.name, "_interface_method");
         node.childrenAccept(this, curr.newChildScope(id++, node.name));
         return null;
@@ -110,6 +124,10 @@ public class UndeclaredVisitor implements LexerVisitor {
 
     public Object visit(ASTMethodDecl node, Object data) {
         ScopeNode curr = (ScopeNode) data;
+        String returnType = node.returnType;
+        if (curr.checkDeclared(returnType, IdentifierType.RETURN_TYPE) == null) {
+            halt(returnType);
+        }
         curr.addSymbol(node.name, "_method");
         node.childrenAccept(this, curr.newChildScope(id++, node.name));
         return null;
@@ -122,6 +140,10 @@ public class UndeclaredVisitor implements LexerVisitor {
 
     public Object visit(ASTParameter node, Object data) {
         ScopeNode curr = (ScopeNode) data;
+        String type = node.type;
+        if (curr.checkDeclared(type, IdentifierType.DECL_TYPE) == null) {
+            halt(type);
+        }
         curr.addSymbol(node.name, node.type + (node.isArray ? "[]" : ""));
         node.childrenAccept(this, data);
         return null;
@@ -356,6 +378,21 @@ class ScopeNode extends SimpleNode {
             case IMPLEMENTS:
                 if (symbolTable.containsKey(identifier)
                         && symbolTable.get(identifier).equals("_interface")) {
+                    return this;
+                }
+                break;
+            case RETURN_TYPE:
+                if (identifier.equals("void")) {
+                    return this;
+                }
+                // fall through
+            case DECL_TYPE:
+                if (primitives.contains(identifier)) {
+                    return this;
+                }
+                if (symbolTable.containsKey(identifier)
+                        && (symbolTable.get(identifier).equals("_struct")
+                            || symbolTable.get(identifier).equals("_enum"))) {
                     return this;
                 }
                 break;

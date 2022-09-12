@@ -459,7 +459,7 @@ void InterfaceMethodDecl()                     :
 {/*@bgen(jjtree) InterfaceMethodDecl */
   try {
 /*@egen*/
-  (t = Type() | t = <VOID> { jjtn000.returnType = t.image; })
+  (t = Type() { jjtn000.returnType = t.image; } | t = <VOID> { jjtn000.returnType = t.image; })
   t = <IDENT> { jjtn000.name = t.image; }
   "(" (FormPars())? ")" ";"/*@bgen(jjtree)*/
   } catch (Throwable jjte000) {

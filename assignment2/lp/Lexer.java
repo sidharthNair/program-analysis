@@ -536,10 +536,11 @@ public class Lexer/*@bgen(jjtree)*/implements LexerTreeConstants, LexerConstants
       switch ((jj_ntk==-1)?jj_ntk():jj_ntk) {
       case IDENT:
         t = Type();
+                jjtn000.returnType = t.image;
         break;
       case VOID:
         t = jj_consume_token(VOID);
-                             jjtn000.returnType = t.image;
+                                                               jjtn000.returnType = t.image;
         break;
       default:
         jj_la1[16] = jj_gen;

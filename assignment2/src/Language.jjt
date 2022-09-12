@@ -197,7 +197,7 @@ void InterfaceMethodDecl() #InterfaceMethodDecl:
   Token t;
 }
 {
-  (t = Type() | t = <VOID> { jjtThis.returnType = t.image; })
+  (t = Type() { jjtThis.returnType = t.image; } | t = <VOID> { jjtThis.returnType = t.image; })
   t = <IDENT> { jjtThis.name = t.image; }
   "(" (FormPars())? ")" ";"
 }
