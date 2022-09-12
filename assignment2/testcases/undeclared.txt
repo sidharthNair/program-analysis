@@ -1,20 +1,18 @@
-start Successful
+start Undeclared
     const int size = 10;
     enum Num { ZERO, ONE, TEN = 10 }
-    struct Abc {
-        int x, y;
+    interface I {
+        int getp(int i);
+        int getn(int i);
     }
 
-    struct Table extends Abc {
-        Abc structure[];
+    struct Table implements I {
         int pos[], neg[];
         {
             void putp(int a, int idx) { this.pos[idx]=a; }
             void putn (int a, int idx) { this.neg[idx]=a; }
             int getp (int idx) { return pos[idx]; }
             int getn (int idx) { return neg[idx]; }
-            int getx () { return x; }
-            int gety () { return y; }
         }
     }
 
@@ -24,14 +22,6 @@ start Successful
         int x;
         {
             x = arg;
-            length(x);
-        }
-
-    int must(int b)
-        int a;
-        {
-            a = 5;
-            return a;
         }
 
     void main()
@@ -40,11 +30,9 @@ start Successful
     {
         //---- Initialize val
         val = new Table;
-        val.getx();
-        val.pos[3] = 3;
-        val.structure[1].x = 5;
         val.pos = new int [size];
         val.neg = new int [size];
+        val.undeclared = 5;
         for (i = 0; i<size; i++)
         {
             val.putp(0,i);

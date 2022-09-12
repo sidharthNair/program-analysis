@@ -163,10 +163,8 @@ public class UndeclaredVisitor implements LexerVisitor {
         ScopeNode curr = (ScopeNode) data;
         String word = node.name;
         String next;
-        DesignatorType dt;
         if (node.modifiers.isEmpty()) {
-            dt = DesignatorType.SINGLE;
-            ScopeNode found = curr.checkDeclared(node.name, dt);
+            ScopeNode found = curr.checkDeclared(node.name, DesignatorType.SINGLE);
             // System.out.println(node.name + ": " + (found != null));
             if (found == null) {
                 halt(node.name);
@@ -174,8 +172,9 @@ public class UndeclaredVisitor implements LexerVisitor {
 
         } else {
             String prefix = "";
-            String command = node.name;
+            /*
             if (node.modifiers.size() > 1) {
+                String command = node.name;
                 prefix = "\t";
                 for (int i = 0; i < node.modifiers.size(); i++) {
                     try {
@@ -185,23 +184,23 @@ public class UndeclaredVisitor implements LexerVisitor {
                         command += "." + node.modifiers.get(i);
                     }
                 }
+                System.out.println(command);
             }
+            */
             for (int i = 0; i < node.modifiers.size(); i++) {
                 try {
                     Integer.parseInt(node.modifiers.get(i));
-                    dt = DesignatorType.ARRAY_INDEX;
-                    curr = curr.checkDeclared(word, dt);
+                    curr = curr.checkDeclared(word, DesignatorType.ARRAY_INDEX);
                     // System.out.println(prefix + word + "[]: " + (curr != null));
                     if (curr == null) {
-                        halt(command + "(" + word + "[])");
+                        halt(word + "[EXPR]");
                     }
                 } catch (Exception e) {
                     next = node.modifiers.get(i);
-                    dt = DesignatorType.DOT;
-                    curr = curr.checkDeclared(word + "." + next, dt);
+                    curr = curr.checkDeclared(word + "." + next, DesignatorType.DOT);
                     // System.out.println(prefix + word + "." + next + ": " + (curr != null));
                     if (curr == null) {
-                        halt(command + "(" + word + "." + next + "[])");
+                        halt(word + "." + next);
                     }
                     word = next;
                 }
@@ -232,8 +231,8 @@ public class UndeclaredVisitor implements LexerVisitor {
     }
 
     public void halt(String var) {
-        System.out.println("Found undeclared reference: " + var);
         root.printScopeTree("");
+        System.out.println("Found undeclared reference: " + var);
         System.exit(1);
     }
 }
