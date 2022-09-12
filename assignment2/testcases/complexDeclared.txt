@@ -13,7 +13,7 @@ start testing
         int mem_size;
         {
             int getid() { return id; }
-            int size() { return size; }
+            int size() { return mem_size; }
         }
     }
     struct Person extends Object {
