@@ -11,7 +11,7 @@ public class MustVisitor implements LexerVisitor {
         boolean foundMethodNameAndType = false;
         node.childrenAccept(this, foundMethodNameAndType);
         if (found) {
-            System.out.println("\nSUCCESS: FOUND METHOD \"must\" WITH RETURN TYPE INT AND AT LEAST ONE ARGUMENT\n");
+            System.out.println("SUCCESS: FOUND METHOD \"must\" WITH RETURN TYPE INT AND AT LEAST ONE ARGUMENT");
         }
         else {
             System.out.println("Did not find method \"must\" with return type int and at least one argument");

@@ -1,6 +1,9 @@
-public class MustVisitor implements LexerVisitor {
+import java.util.HashMap;
+import java.util.HashSet;
 
-    boolean found = false;
+public class DuplicateStructMethodVisitor implements LexerVisitor {
+
+    HashMap<String, HashSet<String>> structMethods = new HashMap<String, HashSet<String>>();
 
     public Object visit(SimpleNode node, Object data) {
         node.childrenAccept(this, data);
@@ -8,15 +11,9 @@ public class MustVisitor implements LexerVisitor {
     }
 
     public Object visit(ASTStart node, Object data) {
-        boolean foundMethodNameAndType = false;
-        node.childrenAccept(this, foundMethodNameAndType);
-        if (found) {
-            System.out.println("\nSUCCESS: FOUND METHOD \"must\" WITH RETURN TYPE INT AND AT LEAST ONE ARGUMENT\n");
-        }
-        else {
-            System.out.println("Did not find method \"must\" with return type int and at least one argument");
-            System.exit(3);
-        }
+        String structName = null;
+        node.childrenAccept(this, structName);
+        System.out.println("SUCCESS: NO DUPLICATE METHOD NAMES USED IN A SINGLE STRUCT");
         return null;
     }
 
@@ -56,7 +53,8 @@ public class MustVisitor implements LexerVisitor {
     }
 
     public Object visit(ASTStructDecl node, Object data) {
-        node.childrenAccept(this, data);
+        structMethods.put(node.name, new HashSet<String>());
+        node.childrenAccept(this, node.name);
         return null;
     }
 
@@ -71,18 +69,18 @@ public class MustVisitor implements LexerVisitor {
     }
 
     public Object visit(ASTMethodDecl node, Object data) {
-        boolean foundMethodNameAndType = (node.name.equals("must") && node.returnType.equals("int"));
-        node.childrenAccept(this, foundMethodNameAndType);
+        String structName = (String) data;
+        if (structName != null) {
+            if (!structMethods.get(structName).add(node.name)) {
+                System.out.println("Found duplicate method name in struct " + structName + ": " + node.name);
+                System.exit(2);
+            }
+        }
+        node.childrenAccept(this, data);
         return null;
     }
 
     public Object visit(ASTFormPars node, Object data) {
-        boolean foundMethodNameAndType = (boolean) data;
-        if (foundMethodNameAndType) {
-            if (node.jjtGetNumChildren() > 0) {
-                found = true;
-            }
-        }
         node.childrenAccept(this, data);
         return null;
     }

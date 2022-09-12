@@ -24,9 +24,8 @@ public class UndeclaredVisitor implements LexerVisitor {
 
     public Object visit(ASTStart node, Object data) {
         node.childrenAccept(this, data);
-        System.out.println("\n======================== SCOPE TREE ========================\n");
         root.printScopeTree("");
-        System.out.println("\nSUCCESS: ALL VARIABLE AND METHOD NAMES DECLARED BEFORE USE\n");
+        System.out.println("SUCCESS: ALL VARIABLE AND METHOD NAMES DECLARED BEFORE USE");
         return null;
     }
 
@@ -168,42 +167,41 @@ public class UndeclaredVisitor implements LexerVisitor {
         if (node.modifiers.isEmpty()) {
             dt = DesignatorType.SINGLE;
             ScopeNode found = curr.checkDeclared(node.name, dt);
-            System.out.println(node.name + ": " + (found != null));
+            // System.out.println(node.name + ": " + (found != null));
             if (found == null) {
-                halt();
+                halt(node.name);
             }
 
         } else {
             String prefix = "";
+            String command = node.name;
             if (node.modifiers.size() > 1) {
                 prefix = "\t";
-                String command = node.name;
                 for (int i = 0; i < node.modifiers.size(); i++) {
                     try {
                         Integer.parseInt(node.modifiers.get(i));
-                        command += "[]";
+                        command += "[EXPR]";
                     } catch (Exception e) {
                         command += "." + node.modifiers.get(i);
                     }
                 }
-                System.out.println(command + ": ");
             }
             for (int i = 0; i < node.modifiers.size(); i++) {
                 try {
                     Integer.parseInt(node.modifiers.get(i));
                     dt = DesignatorType.ARRAY_INDEX;
                     curr = curr.checkDeclared(word, dt);
-                    System.out.println(prefix + word + "[]: " + (curr != null));
+                    // System.out.println(prefix + word + "[]: " + (curr != null));
                     if (curr == null) {
-                        halt();
+                        halt(command + "(" + word + "[])");
                     }
                 } catch (Exception e) {
                     next = node.modifiers.get(i);
                     dt = DesignatorType.DOT;
                     curr = curr.checkDeclared(word + "." + next, dt);
-                    System.out.println(prefix + word + "." + next + ": " + (curr != null));
+                    // System.out.println(prefix + word + "." + next + ": " + (curr != null));
                     if (curr == null) {
-                        halt();
+                        halt(command + "(" + word + "." + next + "[])");
                     }
                     word = next;
                 }
@@ -233,9 +231,8 @@ public class UndeclaredVisitor implements LexerVisitor {
         return null;
     }
 
-    public void halt() {
-        System.out.println("Found undeclared variable");
-        System.out.println("\n======================== SCOPE TREE ========================\n");
+    public void halt(String var) {
+        System.out.println("Found undeclared reference: " + var);
         root.printScopeTree("");
         System.exit(1);
     }

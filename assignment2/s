@@ -1,16 +1,22 @@
 #!/bin/bash
 
-# https://github.com/javacc/javacc/archive/javacc-7.0.11.tar.gz
-
 DIR_NAME=lp
 
-( cd $DIR_NAME
-  javac *.java
-  java -cp . Lexer "../${1}"
-  if [ $? -ne 0 ]; then
-        echo "Runtime Error"
-        exit 1
-  fi
-)
+if [ $# -eq 0 ]; then
+    echo "No program input supplied"
+else
+    ( cd $DIR_NAME
+        javac *.java -nowarn
+        java -cp . Lexer "../${1}"
+        code=$?
+        if [ $code -ne 0 ]; then
+            echo "Runtime Error"
+            echo "Runtime Error" > "../OUTPUT"
+            exit $code
+        else
+            echo "SUCCESS" > "../OUTPUT"
+        fi
+    )
+fi
 
-echo "SUCCESS" > OUTPUT
+

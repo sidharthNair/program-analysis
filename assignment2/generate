@@ -1,0 +1,48 @@
+#!/bin/bash
+
+# https://github.com/javacc/javacc/archive/javacc-7.0.11.tar.gz
+
+DIR_NAME=lp
+
+# rm -rf $DIR_NAME
+# mkdir $DIR_NAME
+
+java -cp javacc-javacc-7.0.11/bootstrap/javacc.jar \
+jjtree \
+-OUTPUT_DIRECTORY=$DIR_NAME \
+src/Language.jjt
+
+if [ $? -ne 0 ]; then
+    echo "Did not successfully run jjtree"
+    exit 1
+fi
+
+java -cp javacc-javacc-7.0.11/bootstrap/javacc.jar \
+org.javacc.parser.Main \
+-OUTPUT_DIRECTORY=$DIR_NAME \
+$DIR_NAME/Language.jj
+
+if [ $? -ne 0 ]; then
+    echo "Did not successfully run javacc"
+    exit 2
+fi
+
+cp src/*.java $DIR_NAME/
+
+if [ $# -eq 0 ]; then
+    echo "No program input supplied"
+else
+    ( cd $DIR_NAME
+        javac *.java -nowarn
+        java -cp . Lexer "../${1}"
+        code=$?
+        if [ $code -ne 0 ]; then
+            echo "Runtime Error"
+            echo "Runtime Error" > "../OUTPUT"
+            exit $code
+        else
+            echo "SUCCESS" > "../OUTPUT"
+        fi
+    )
+fi
+

@@ -13,7 +13,7 @@ public class DuplicateStructMethodVisitor implements LexerVisitor {
     public Object visit(ASTStart node, Object data) {
         String structName = null;
         node.childrenAccept(this, structName);
-        System.out.println("\nSUCCESS: NO DUPLICATE METHOD NAMES USED IN A SINGLE STRUCT\n");
+        System.out.println("SUCCESS: NO DUPLICATE METHOD NAMES USED IN A SINGLE STRUCT");
         return null;
     }
 
