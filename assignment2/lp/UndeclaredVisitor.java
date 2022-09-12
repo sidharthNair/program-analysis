@@ -1,11 +1,14 @@
 import java.util.HashMap;
 import java.util.HashSet;
 import java.util.Arrays;
+import java.util.ArrayList;
 
-enum DesignatorType {
+enum IdentifierType {
     SINGLE,
     DOT,
-    ARRAY_INDEX
+    ARRAY_INDEX,
+    EXTENDS,
+    IMPLEMENTS
 }
 
 public class UndeclaredVisitor implements LexerVisitor {
@@ -25,7 +28,7 @@ public class UndeclaredVisitor implements LexerVisitor {
     public Object visit(ASTStart node, Object data) {
         node.childrenAccept(this, data);
         root.printScopeTree("");
-        System.out.println("SUCCESS: ALL VARIABLE AND METHOD NAMES DECLARED BEFORE USE");
+        System.out.println("SUCCESS: ALL NAMES DECLARED BEFORE USE");
         return null;
     }
 
@@ -75,6 +78,16 @@ public class UndeclaredVisitor implements LexerVisitor {
 
     public Object visit(ASTStructDecl node, Object data) {
         ScopeNode curr = (ScopeNode) data;
+        if (node.parent != null) {
+            if (curr.checkDeclared(node.parent, IdentifierType.EXTENDS) == null) {
+                halt(node.parent);
+            }
+        }
+        for (String i : node.interfaces) {
+            if (curr.checkDeclared(i, IdentifierType.IMPLEMENTS) == null) {
+                halt(i);
+            }
+        }
         curr.addSymbol(node.name, "_struct");
         ScopeNode structScope = curr.newChildScope(id++, node.name, node.parent);
         node.childrenAccept(this, structScope);
@@ -164,7 +177,7 @@ public class UndeclaredVisitor implements LexerVisitor {
         String word = node.name;
         String next;
         if (node.modifiers.isEmpty()) {
-            ScopeNode found = curr.checkDeclared(node.name, DesignatorType.SINGLE);
+            ScopeNode found = curr.checkDeclared(node.name, IdentifierType.SINGLE);
             // System.out.println(node.name + ": " + (found != null));
             if (found == null) {
                 halt(node.name);
@@ -190,14 +203,14 @@ public class UndeclaredVisitor implements LexerVisitor {
             for (int i = 0; i < node.modifiers.size(); i++) {
                 try {
                     Integer.parseInt(node.modifiers.get(i));
-                    curr = curr.checkDeclared(word, DesignatorType.ARRAY_INDEX);
+                    curr = curr.checkDeclared(word, IdentifierType.ARRAY_INDEX);
                     // System.out.println(prefix + word + "[]: " + (curr != null));
                     if (curr == null) {
                         halt(word + "[EXPR]");
                     }
                 } catch (Exception e) {
                     next = node.modifiers.get(i);
-                    curr = curr.checkDeclared(word + "." + next, DesignatorType.DOT);
+                    curr = curr.checkDeclared(word + "." + next, IdentifierType.DOT);
                     // System.out.println(prefix + word + "." + next + ": " + (curr != null));
                     if (curr == null) {
                         halt(word + "." + next);
@@ -278,30 +291,30 @@ class ScopeNode extends SimpleNode {
     }
 
     // Returns the scope where the variable / method is found
-    public ScopeNode checkDeclared(String varName, DesignatorType dt) {
+    public ScopeNode checkDeclared(String identifier, IdentifierType dt) {
         ScopeNode structSearch = null;
         switch (dt) {
             case SINGLE:
-                if (predefinedMethods.contains(varName)) {
+                if (predefinedMethods.contains(identifier)) {
                     // ord, chr, or length
                     return this;
                 }
-                if (symbolTable.containsKey(varName) &&
-                        (primitives.contains(symbolTable.get(varName))
-                                || structMap.containsKey(symbolTable.get(varName))
-                                || symbolTable.get(varName).equals("_method"))) {
+                if (symbolTable.containsKey(identifier) &&
+                        (primitives.contains(symbolTable.get(identifier))
+                                || structMap.containsKey(symbolTable.get(identifier))
+                                || symbolTable.get(identifier).equals("_method"))) {
                     // in symbol table; primitive, struct instance, or method
                     return this;
                 }
                 if (structMap.containsKey(this.scopeName)) {
-                    structSearch = searchStructHierarchy(this.scopeName, varName);
+                    structSearch = searchStructHierarchy(this.scopeName, identifier);
                     if (structSearch != null) {
                         return structSearch;
                     }
                 }
                 break;
             case DOT:
-                String[] words = varName.split("[.]");
+                String[] words = identifier.split("[.]");
                 String first = words[0];
                 String second = words[1];
                 if (symbolTable.containsKey(first) &&
@@ -329,8 +342,20 @@ class ScopeNode extends SimpleNode {
                 }
                 break;
             case ARRAY_INDEX:
-                if (symbolTable.containsKey(varName)
-                        && symbolTable.get(varName).contains("[]")) {
+                if (symbolTable.containsKey(identifier)
+                        && symbolTable.get(identifier).contains("[]")) {
+                    return this;
+                }
+                break;
+            case EXTENDS:
+                if (symbolTable.containsKey(identifier)
+                        && symbolTable.get(identifier).equals("_struct")) {
+                    return this;
+                }
+                break;
+            case IMPLEMENTS:
+                if (symbolTable.containsKey(identifier)
+                        && symbolTable.get(identifier).equals("_interface")) {
                     return this;
                 }
                 break;
@@ -341,7 +366,7 @@ class ScopeNode extends SimpleNode {
             // Reached top of tree and haven't found variable declared
             return null;
         } else {
-            return ((ScopeNode) this.jjtGetParent()).checkDeclared(varName, dt);
+            return ((ScopeNode) this.jjtGetParent()).checkDeclared(identifier, dt);
         }
     }
 
