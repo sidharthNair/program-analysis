@@ -56,7 +56,7 @@ start interface_undeclared
         read(x);
         for(;x > 0;)
         {
-            if (Num.ZERO<= x && x < size)
+            if (Num.TEN <= x && x < size)
             {
                 val.putp(val.getp(x)+Num.ONE);
             } else
