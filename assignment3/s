@@ -1,0 +1,15 @@
+#!/bin/bash
+
+if [ $# -eq 0 ]; then
+    echo "No program input supplied"
+    exit 1
+else
+    PROGRAM=$1
+    javac ${PROGRAM}
+    ( cd jpf-core
+        gradle build -x test
+        bin/jpf +classpath=.. ${PROGRAM%%.*}
+    )
+fi
+
+
