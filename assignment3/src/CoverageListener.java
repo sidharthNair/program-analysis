@@ -38,15 +38,16 @@ public class CoverageListener extends ListenerAdapter {
     @Override
     public void searchFinished(Search search) {
         try {
-            FileWriter report = new FileWriter("report.txt");
-            for (String file : coverageMap.keySet()) {
-                for (String lineNum : coverageMap.get(file)) {
-                    report.write(file + ":" + lineNum + "\n");
+            File file = new File("results/report.txt");
+            file.getParentFile().mkdirs();
+            FileWriter report = new FileWriter(file);
+            for (String fileName : coverageMap.keySet()) {
+                for (String lineNum : coverageMap.get(fileName)) {
+                    report.write(fileName + ":" + lineNum + "\n");
                 }
             }
             report.close();
-        }
-        catch (IOException e) {
+        } catch (IOException e) {
             System.out.println("File IO Error occurred.");
             e.printStackTrace();
         }

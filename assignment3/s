@@ -30,6 +30,7 @@ else
     fi
 
     jpf-core/bin/jpf +native_classpath=build/ +classpath=build/ +listener=CoverageListener ${PROGRAM%%.*}
+    jpf-core/bin/jpf +native_classpath=build/ +classpath=build/ +listener=MemoizationListener ${PROGRAM%%.*}
 fi
 
 
