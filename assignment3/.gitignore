@@ -1,1 +1,3 @@
-*.class
+jpf-core
+build/
+report.txt
