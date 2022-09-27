@@ -20,7 +20,7 @@ import java.io.IOException;
 
 public class CoverageListener extends ListenerAdapter {
 
-    private TreeMap<String, TreeSet<String>> coverageMap = new TreeMap<>();
+    private TreeMap<String, TreeSet<Integer>> coverageMap = new TreeMap<>();
 
     @Override
     public void executeInstruction(VM vm, ThreadInfo currentThread, Instruction instructionToExecute) {
@@ -29,9 +29,9 @@ public class CoverageListener extends ListenerAdapter {
         String[] split = pos.split(":");
         if (path != null && !path.startsWith("java/") && !path.startsWith("sun/") && !path.startsWith("gov/")) {
             if (!coverageMap.containsKey(split[0])) {
-                coverageMap.put(split[0], new TreeSet<String>());
+                coverageMap.put(split[0], new TreeSet<Integer>());
             }
-            coverageMap.get(split[0]).add(split[1]);
+            coverageMap.get(split[0]).add(Integer.parseInt(split[1]));
         }
     }
 
@@ -42,7 +42,7 @@ public class CoverageListener extends ListenerAdapter {
             file.getParentFile().mkdirs();
             FileWriter report = new FileWriter(file);
             for (String fileName : coverageMap.keySet()) {
-                for (String lineNum : coverageMap.get(fileName)) {
+                for (Integer lineNum : coverageMap.get(fileName)) {
                     report.write(fileName + ":" + lineNum + "\n");
                 }
             }
