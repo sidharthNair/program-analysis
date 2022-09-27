@@ -15,6 +15,7 @@ else
     )
 
     # compile listeners
+    mkdir -p build/
     javac -d build/ -classpath jpf-core/build/jpf.jar src/*.java
     if [ $? -ne 0 ]; then
         echo "ERROR: compilation of listeners failed"
@@ -29,8 +30,9 @@ else
         exit 1
     fi
 
-    jpf-core/bin/jpf +native_classpath=build/ +classpath=build/ +listener=CoverageListener ${PROGRAM%%.*}
-    jpf-core/bin/jpf +native_classpath=build/ +classpath=build/ +listener=MemoizationListener ${PROGRAM%%.*}
+    NAME=$(basename ${PROGRAM})
+    jpf-core/bin/jpf +native_classpath=build/ +classpath=build/ +listener=CoverageListener ${NAME%%.*}
+    jpf-core/bin/jpf +native_classpath=build/ +classpath=build/ +listener=MemoizationListener ${NAME%%.*}
 fi
 
 

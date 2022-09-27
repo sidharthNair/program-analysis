@@ -23,8 +23,6 @@ import gov.nasa.jpf.util.ObjectList;
 import java.util.HashMap;
 import java.util.HashSet;
 import java.util.Stack;
-import java.util.zip.Checksum;
-import java.lang.reflect.Field;
 
 public class MemoizationListener extends ListenerAdapter {
 
