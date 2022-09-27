@@ -55,14 +55,11 @@ public class MemoizationListener extends ListenerAdapter {
                     Object result = memoizeMap.get(mi).get(checkSum);
                     if (result instanceof Long) {
                         frame.pushLong((Long) result);
-                    }
-                    else if (result instanceof Double) {
+                    } else if (result instanceof Double) {
                         frame.pushDouble((Double) result);
-                    }
-                    else if (result instanceof Float) {
+                    } else if (result instanceof Float) {
                         frame.pushFloat((Float) result);
-                    }
-                    else {
+                    } else {
                         frame.push((Integer) result);
                     }
                     currentThread.skipInstruction(currentThread.getPC().getNext());
