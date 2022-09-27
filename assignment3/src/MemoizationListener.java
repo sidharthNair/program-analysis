@@ -22,7 +22,8 @@ import gov.nasa.jpf.util.ObjectList;
 
 import java.util.HashMap;
 import java.util.HashSet;
-
+import java.util.Stack;
+import java.util.zip.Checksum;
 import java.lang.reflect.Field;
 
 public class MemoizationListener extends ListenerAdapter {
@@ -30,7 +31,7 @@ public class MemoizationListener extends ListenerAdapter {
     // Outer hashmap maps method to arguments map, which maps arguments to output
     HashMap<MethodInfo, HashMap<String, Object>> memoizeMap = new HashMap<>();
     // Maps stack depth to arguments for a certain method
-    HashMap<MethodInfo, HashMap<Integer, String>> argumentMap = new HashMap<>();
+    HashMap<ThreadInfo, HashMap<MethodInfo, Stack<String>>> argumentMap = new HashMap<>();
 
     @Override
     public void executeInstruction(VM vm, ThreadInfo currentThread, Instruction instructionToExecute) {
@@ -75,7 +76,7 @@ public class MemoizationListener extends ListenerAdapter {
     @Override
     public void instructionExecuted(VM vm, ThreadInfo currentThread, Instruction nextInstruction,
             Instruction executedInstruction) {
-        if (executedInstruction instanceof JVMInvokeInstruction) {
+        if (!currentThread.isInstructionSkipped() && executedInstruction instanceof JVMInvokeInstruction) {
             JVMInvokeInstruction inst = (JVMInvokeInstruction) executedInstruction;
             MethodInfo mi = inst.getInvokedMethod(currentThread);
             if (mi.isStatic() && isPrimitive(mi.getReturnTypeName())) {
@@ -87,16 +88,19 @@ public class MemoizationListener extends ListenerAdapter {
                     }
                 }
                 checkSum = checkSum.substring(0, checkSum.length() - 1);
-                if (!argumentMap.containsKey(mi)) {
-                    argumentMap.put(mi, new HashMap<Integer, String>());
+                if (!argumentMap.containsKey(currentThread)) {
+                    argumentMap.put(currentThread, new HashMap<MethodInfo, Stack<String>>());
                 }
-                argumentMap.get(mi).put(currentThread.getStackDepth() - 1, checkSum);
+                if (!argumentMap.get(currentThread).containsKey(mi)) {
+                    argumentMap.get(currentThread).put(mi, new Stack<String>());
+                }
+                argumentMap.get(currentThread).get(mi).push(checkSum);
             }
         }
         if (executedInstruction instanceof JVMReturnInstruction) {
             MethodInfo mi = executedInstruction.getMethodInfo();
-            if (argumentMap.containsKey(mi)) {
-                String checkSum = argumentMap.get(mi).remove(currentThread.getStackDepth());
+            if (argumentMap.containsKey(currentThread) && argumentMap.get(currentThread).containsKey(mi)) {
+                String checkSum = argumentMap.get(currentThread).get(mi).pop();
                 if (checkSum != null) {
                     if (!memoizeMap.containsKey(mi)) {
                         memoizeMap.put(mi, new HashMap<String, Object>());
