@@ -37,14 +37,8 @@ public class MemoizationListener extends ListenerAdapter {
             JVMInvokeInstruction inst = (JVMInvokeInstruction) instructionToExecute;
             MethodInfo mi = inst.getInvokedMethod(currentThread);
             if (mi.isStatic() && isPrimitive(mi.getReturnTypeName())) {
-                String checkSum = "";
                 Object[] args = inst.getArgumentValues(currentThread);
-                if (args != null) {
-                    for (Object arg : args) {
-                        checkSum += checkSum(arg, new HashSet<Object>()) + " ";
-                    }
-                }
-                checkSum = checkSum.substring(0, checkSum.length() - 1);
+                String checkSum = checkSum(args);
                 if (memoizeMap.containsKey(mi) && memoizeMap.get(mi).containsKey(checkSum)) {
                     StackFrame frame = currentThread.getModifiableTopFrame();
                     if (args != null) {
@@ -75,14 +69,8 @@ public class MemoizationListener extends ListenerAdapter {
             JVMInvokeInstruction inst = (JVMInvokeInstruction) executedInstruction;
             MethodInfo mi = inst.getInvokedMethod(currentThread);
             if (mi.isStatic() && isPrimitive(mi.getReturnTypeName())) {
-                String checkSum = "";
                 Object[] args = inst.getArgumentValues(currentThread);
-                if (args != null) {
-                    for (Object arg : args) {
-                        checkSum += checkSum(arg, new HashSet<Object>()) + " ";
-                    }
-                }
-                checkSum = checkSum.substring(0, checkSum.length() - 1);
+                String checkSum = checkSum(args);
                 if (!argumentMap.containsKey(currentThread)) {
                     argumentMap.put(currentThread, new HashMap<MethodInfo, Stack<String>>());
                 }
@@ -106,12 +94,18 @@ public class MemoizationListener extends ListenerAdapter {
         }
     }
 
-    @Override
-    public void searchFinished(Search search) {
-
+    public static String checkSum(Object[] args) {
+        String ret = "";
+        if (args != null) {
+            for (Object arg : args) {
+                ret += checkSumHelper(arg, new HashSet<Object>()) + " ";
+            }
+        }
+        ret = ret.substring(0, ret.length() - 1);
+        return ret;
     }
 
-    public static String checkSum(Object arg, HashSet<Object> visited) {
+    public static String checkSumHelper(Object arg, HashSet<Object> visited) {
         if (arg == null) {
             return null;
         }
@@ -130,7 +124,7 @@ public class MemoizationListener extends ListenerAdapter {
                 for (int i = 0; i < e.getNumberOfFields(); i++) {
                     FieldInfo f = e.getFieldInfo(i);
                     if (f.isReference()) {
-                        ret += checkSum(f.getValueObject(e.getFields()), visited) + ",";
+                        ret += checkSumHelper(f.getValueObject(e.getFields()), visited) + ",";
                     } else {
                         ret += f.getValueObject(e.getFields()) + ",";
                     }
