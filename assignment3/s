@@ -17,6 +17,7 @@ else
 
     # compile listeners
     echo "Compiling Listeners..."
+    rm -rf build/
     mkdir -p build/
     javac -d build/ -classpath jpf-core/build/jpf.jar src/*.java
     if [ $? -ne 0 ]; then
