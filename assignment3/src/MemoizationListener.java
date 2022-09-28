@@ -88,7 +88,17 @@ public class MemoizationListener extends ListenerAdapter {
                     if (!memoizeMap.containsKey(mi)) {
                         memoizeMap.put(mi, new HashMap<String, Object>());
                     }
-                    memoizeMap.get(mi).put(checkSum, currentThread.getTopFrame().peek());
+                    Object value;
+                    String type = mi.getReturnTypeName();
+                    if (type.equals("long")) {
+                        memoizeMap.get(mi).put(checkSum, currentThread.getTopFrame().peekLong());
+                    } else if (type.equals("double")) {
+                        memoizeMap.get(mi).put(checkSum, currentThread.getTopFrame().peekDouble());
+                    } else if (type.equals("float")) {
+                        memoizeMap.get(mi).put(checkSum, currentThread.getTopFrame().peekFloat());
+                    } else {
+                        memoizeMap.get(mi).put(checkSum, currentThread.getTopFrame().peek());
+                    }
                 }
             }
         }
