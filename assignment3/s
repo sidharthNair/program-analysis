@@ -6,15 +6,17 @@ if [ $# -eq 0 ]; then
 else
     # build jpf-core
     if [ ! -d jpf-core ]; then
-        echo "Downloading jpf-core"
+        echo "Downloading jpf-core..."
         git clone https://github.com/javapathfinder/jpf-core
     fi
     ( cd jpf-core
+        echo "Building jpf-core..."
         sed -i 's/public void setJavaObjectInputStreamReadString.*/public void setJavaObjectInputStreamReadString() {/g' src/classes/sun/misc/SharedSecrets.java
         gradle buildJars -x test
     )
 
     # compile listeners
+    echo "Compiling Listeners..."
     mkdir -p build/
     javac -d build/ -classpath jpf-core/build/jpf.jar src/*.java
     if [ $? -ne 0 ]; then
@@ -22,16 +24,27 @@ else
         exit 1
     fi
 
-    # compile input program
+
     PROGRAM=$1
-    javac -d build/ ${PROGRAM}
-    if [ $? -ne 0 ]; then
-        echo "ERROR: compilation of input program failed"
-        exit 1
+    # compile input program
+    if [[ $PROGRAM == *.java ]]; then
+        echo "Compiling input program: ${PROGRAM}..."
+        javac -d build/ ${PROGRAM}
+        if [ $? -ne 0 ]; then
+            echo "ERROR: compilation of input program failed"
+            exit 1
+        fi
+    elif [[ $PROGRAM == *.class ]]; then
+        echo "Copying class files to build/..."
+        cp $(dirname ${PROGRAM})/*.class build/
+    else
+        echo "Input program not a java or class file"
     fi
 
     NAME=$(basename ${PROGRAM})
+    echo "Executing ${NAME} with jpf-core + CoverageListener..."
     jpf-core/bin/jpf +native_classpath=build/ +classpath=build/ +listener=CoverageListener ${NAME%%.*}
+    echo "Executing ${NAME} with jpf-core + MemoizationListener..."
     jpf-core/bin/jpf +native_classpath=build/ +classpath=build/ +listener=MemoizationListener ${NAME%%.*}
 fi
 
