@@ -40,6 +40,7 @@ else
         cp $(dirname ${PROGRAM})/*.class build/
     else
         echo "Input program not a java or class file"
+        exit 1
     fi
 
     NAME=$(basename ${PROGRAM})
