@@ -44,10 +44,8 @@ else
     fi
 
     NAME=$(basename ${PROGRAM})
-    echo "Executing ${NAME} with jpf-core + CoverageListener..."
-    jpf-core/bin/jpf +native_classpath=build/ +classpath=build/ +listener=CoverageListener ${NAME%%.*}
-    echo "Executing ${NAME} with jpf-core + MemoizationListener..."
-    jpf-core/bin/jpf +native_classpath=build/ +classpath=build/ +listener=MemoizationListener ${NAME%%.*}
+    echo "Executing ${NAME} with jpf-core + CoverageListener and MemoizationListener..."
+    jpf-core/bin/jpf +native_classpath=build/ +classpath=build/ +listener=CoverageListener,MemoizationListener ${NAME%%.*}
 fi
 
 
