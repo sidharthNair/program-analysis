@@ -24,12 +24,38 @@ import java.util.HashMap;
 import java.util.HashSet;
 import java.util.Stack;
 
+import java.io.File;
+import java.io.FileWriter;
+import java.io.IOException;
+
 public class MemoizationListener extends ListenerAdapter {
 
     // Outer hashmap maps method to arguments map, which maps arguments to output
     HashMap<MethodInfo, HashMap<String, Object>> memoizeMap = new HashMap<>();
     // Maps stack depth to arguments for a certain method
-    HashMap<ThreadInfo, HashMap<MethodInfo, Stack<String>>> argumentMap = new HashMap<>();
+    HashMap<ThreadInfo, Stack<Object[]>> argumentMap = new HashMap<>();
+
+    File file = new File("results/report2.txt");
+    FileWriter report;
+
+    @Override
+    public void searchStarted(Search search) {
+        file.getParentFile().mkdirs();
+        try {
+            report = new FileWriter(file);
+        } catch (IOException e) {
+            e.printStackTrace();
+        }
+    }
+
+    @Override
+    public void searchFinished(Search search) {
+        try {
+            report.close();
+        } catch (IOException e) {
+            e.printStackTrace();
+        }
+    }
 
     @Override
     public void executeInstruction(VM vm, ThreadInfo currentThread, Instruction instructionToExecute) {
@@ -41,12 +67,13 @@ public class MemoizationListener extends ListenerAdapter {
                 String checkSum = checkSum(args);
                 if (memoizeMap.containsKey(mi) && memoizeMap.get(mi).containsKey(checkSum)) {
                     StackFrame frame = currentThread.getModifiableTopFrame();
-                    if (args != null) {
-                        for (Object arg : args) {
-                            frame.pop();
-                        }
-                    }
+                    frame.removeArguments(mi);
                     Object result = memoizeMap.get(mi).get(checkSum);
+                    try {
+                        report.write("Returning memoized return value for " + methodToString(mi, args, result) + "\n");
+                    } catch (IOException e) {
+                        e.printStackTrace();
+                    }
                     if (result instanceof Long) {
                         frame.pushLong((Long) result);
                     } else if (result instanceof Double) {
@@ -67,41 +94,76 @@ public class MemoizationListener extends ListenerAdapter {
             Instruction executedInstruction) {
         if (!currentThread.isInstructionSkipped() && executedInstruction instanceof JVMInvokeInstruction) {
             JVMInvokeInstruction inst = (JVMInvokeInstruction) executedInstruction;
-            MethodInfo mi = inst.getInvokedMethod(currentThread);
-            if (mi.isStatic() && isPrimitive(mi.getReturnTypeName())) {
-                Object[] args = inst.getArgumentValues(currentThread);
-                String checkSum = checkSum(args);
-                if (!argumentMap.containsKey(currentThread)) {
-                    argumentMap.put(currentThread, new HashMap<MethodInfo, Stack<String>>());
-                }
-                if (!argumentMap.get(currentThread).containsKey(mi)) {
-                    argumentMap.get(currentThread).put(mi, new Stack<String>());
-                }
-                argumentMap.get(currentThread).get(mi).push(checkSum);
+            Object[] args = inst.getArgumentValues(currentThread);
+            if (!argumentMap.containsKey(currentThread)) {
+                argumentMap.put(currentThread, new Stack<Object[]>());
             }
+            argumentMap.get(currentThread).push(args);
         }
         if (executedInstruction instanceof JVMReturnInstruction) {
             MethodInfo mi = executedInstruction.getMethodInfo();
-            if (argumentMap.containsKey(currentThread) && argumentMap.get(currentThread).containsKey(mi)) {
-                String checkSum = argumentMap.get(currentThread).get(mi).pop();
-                if (checkSum != null) {
-                    if (!memoizeMap.containsKey(mi)) {
-                        memoizeMap.put(mi, new HashMap<String, Object>());
-                    }
-                    Object value;
-                    String type = mi.getReturnTypeName();
-                    if (type.equals("long")) {
-                        memoizeMap.get(mi).put(checkSum, currentThread.getTopFrame().peekLong());
-                    } else if (type.equals("double")) {
-                        memoizeMap.get(mi).put(checkSum, currentThread.getTopFrame().peekDouble());
-                    } else if (type.equals("float")) {
-                        memoizeMap.get(mi).put(checkSum, currentThread.getTopFrame().peekFloat());
-                    } else {
-                        memoizeMap.get(mi).put(checkSum, currentThread.getTopFrame().peek());
-                    }
+            Object[] args = argumentMap.get(currentThread).pop();
+            Object returnValue;
+            String type = mi.getReturnTypeName();
+            if (type.equals("void")) {
+                returnValue = null;
+            } else if (type.equals("long")) {
+                returnValue = currentThread.getTopFrame().peekLong();
+            } else if (type.equals("double")) {
+                returnValue = currentThread.getTopFrame().peekDouble();
+            } else if (type.equals("float")) {
+                returnValue = currentThread.getTopFrame().peekFloat();
+            } else {
+                returnValue = currentThread.getTopFrame().peek();
+            }
+            if (mi.isStatic() && isPrimitive(mi.getReturnTypeName())) {
+                String checkSum = checkSum(args);
+                if (!memoizeMap.containsKey(mi)) {
+                    memoizeMap.put(mi, new HashMap<String, Object>());
+                }
+                try {
+                    report.write("Memoizing " + methodToString(mi, args, returnValue) + "\n");
+                } catch (IOException e) {
+                    e.printStackTrace();
+                }
+                memoizeMap.get(mi).put(checkSum, returnValue);
+            } else {
+                try {
+                    report.write(methodToString(mi, args, returnValue) + " is not memoizable" + "\n");
+                } catch (IOException e) {
+                    e.printStackTrace();
                 }
             }
         }
+    }
+
+    public static String methodToString(MethodInfo mi, Object[] args, Object returnValue) {
+        String methodName = mi.getName();
+        String params = "";
+        if (args != null) {
+            for (Object arg : args) {
+                if (arg != null) {
+                    if (isPrimitiveClass(arg.getClass())) {
+                        params += arg;
+                    } else {
+                        params += "object:" + ((DynamicElementInfo) arg).getClassInfo().getName();
+                    }
+                    params += ", ";
+                }
+            }
+            if (params.length() > 0) {
+                params = params.substring(0, params.length() - 2);
+            }
+        }
+        String returnString = "";
+        if (returnValue != null && !isPrimitiveClass(returnValue.getClass())) {
+            returnString += "object:" + returnString.getClass().getName();
+        } else if (returnValue != null) {
+            returnString += returnValue;
+        } else {
+            returnString += "void";
+        }
+        return methodName + "(" + params + "):" + returnString;
     }
 
     public static String checkSum(Object[] args) {
@@ -161,6 +223,6 @@ public class MemoizationListener extends ListenerAdapter {
         return (type.isPrimitive()) ||
                 type == Byte.class || type == Short.class || type == Integer.class ||
                 type == Long.class || type == Float.class || type == Double.class ||
-                type == Character.class || type == Boolean.class || type == String.class;
+                type == Character.class || type == Boolean.class;
     }
 }

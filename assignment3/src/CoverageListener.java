@@ -25,13 +25,13 @@ public class CoverageListener extends ListenerAdapter {
     @Override
     public void executeInstruction(VM vm, ThreadInfo currentThread, Instruction instructionToExecute) {
         String path = instructionToExecute.getFileLocation();
-        String pos = instructionToExecute.getFilePos();
-        String[] split = pos.split(":");
-        if (path != null && !path.startsWith("java/") && !path.startsWith("sun/") && !path.startsWith("gov/")) {
-            if (!coverageMap.containsKey(split[0])) {
-                coverageMap.put(split[0], new TreeSet<Integer>());
+        int lineNum = instructionToExecute.getLineNumber();
+        String className = instructionToExecute.getMethodInfo().getClassInfo().getName();
+        if (path != null && lineNum != -1) {
+            if (!coverageMap.containsKey(className)) {
+                coverageMap.put(className, new TreeSet<Integer>());
             }
-            coverageMap.get(split[0]).add(Integer.parseInt(split[1]));
+            coverageMap.get(className).add(lineNum);
         }
     }
 
@@ -41,9 +41,9 @@ public class CoverageListener extends ListenerAdapter {
             File file = new File("results/report.txt");
             file.getParentFile().mkdirs();
             FileWriter report = new FileWriter(file);
-            for (String fileName : coverageMap.keySet()) {
-                for (Integer lineNum : coverageMap.get(fileName)) {
-                    report.write(fileName + ":" + lineNum + "\n");
+            for (String className : coverageMap.keySet()) {
+                for (Integer lineNum : coverageMap.get(className)) {
+                    report.write(className + ":" + lineNum + "\n");
                 }
             }
             report.close();
