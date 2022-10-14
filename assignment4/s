@@ -1,0 +1,19 @@
+#!/bin/bash
+
+rm -rf build/
+mkdir -p build/
+
+javac -d build/ -cp libs/* src/*.java
+jar cfvm build/demo-agent.jar META-INF/MANIFEST.MF build/*.class
+
+javac -d build/ Input.java
+
+( cd build
+    java -javaagent:demo-agent.jar -cp ../libs/*:. Input
+    java Reformat raw_output
+)
+
+mv build/output output
+
+## User ASMifier to view bytecode in the ASM style.
+# java -cp libs/asm-all-5.2.jar:. org/objectweb/asm/util/ASMifier Input
