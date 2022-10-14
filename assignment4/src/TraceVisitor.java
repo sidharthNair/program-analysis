@@ -51,9 +51,7 @@ public class TraceVisitor extends ClassVisitor {
     @Override
     public MethodVisitor visitMethod(int access, String name, String desc, String signature, String[] exceptions) {
         MethodVisitor mv = super.visitMethod(access, name, desc, signature, exceptions);
-        if (!name.equals("<init>") && !name.equals("<clinit>")) {
-            mv = new MVisitor(mv, className, name, desc);
-        }
+        mv = new MVisitor(mv, className, name, desc);
         return mv;
     }
 }

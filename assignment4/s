@@ -4,13 +4,44 @@ rm -rf build/
 mkdir -p build/
 
 javac -d build/ -cp libs/* src/*.java
+if [ $? != 0 ]
+  then
+    echo "Error compiling source files"
+    exit 1
+fi
 jar cfvm build/demo-agent.jar META-INF/MANIFEST.MF build/*.class
+if [ $? != 0 ]
+  then
+    echo "Error creating jar"
+    exit 1
+fi
 
-javac -d build/ Input.java
+if [ $# -eq 0 ]
+  then
+    echo "No arguments supplied, using Input.java as input program"
+    PROGRAM=Input.java
+else
+    echo "Using $1 as input program"
+    PROGRAM=$1
+fi
 
+javac -d build/ $PROGRAM
+if [ $? != 0 ]
+  then
+    echo "Error compiling ${PROGRAM}"
+    exit 1
+fi
+
+NAME=$(basename ${PROGRAM})
 ( cd build
-    java -javaagent:demo-agent.jar -cp ../libs/*:. Input
-    java Reformat raw_output
+    java -javaagent:demo-agent.jar -cp ../libs/*:. ${NAME%%.*}
+    if [ $? -eq 0 ]
+      then
+        java Reformat raw_output
+    else
+        echo "Runtime Error"
+        exit 1
+    fi
 )
 
 mv build/output output
