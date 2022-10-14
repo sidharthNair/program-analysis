@@ -1,0 +1,211 @@
+
+# JavaCC Lexer and Parser
+
+Write a lexer and parser (using JavaCC) and simple semantics analyzer
+for simple Java-like language described in this file.
+
+ - Each program starts with a keyword "start" and has static fields, static methods, inner structs, and inerfaces.
+ - The main method in the language is always called main().
+ - There are:
+   -- several primitive types: int, boolean, char (ASCII only), enums.
+   -- three types of constants: int, char, and boolean.
+   -- several kinds of variables: global (static), local, and fields.
+   -- reference types: arrays like in Java, interfaces and inner structs with fields and methods.
+   -- static methods
+ - There is also struct inheritance and polymorphism.
+ - Overloading is also available.
+ - Three predefined procedure include: ord, chr, and length.
+ - The "printf" method prints values for all primitive types.
+ - Control structures include "if" and "for".
+
+
+## Syntax
+
+Below, you can find "terminals" and terminals, as well as
+non-terminals.  We use alteration (|) and we show that some things can
+repeat zero or more times between {and}. [] means 0 or 1 times.
+
+```
+Program = "start" ident {ConstDecl | VarDecl | StructDecl| EnumDecl | InterfaceDecl} "{" {MethodDecl} "}".
+
+ConstDecl = "const" Type ident "=" (numConst | charConst| booleanConst) {, ident "=" (numConst | charConst | booleanConst)} ";".
+
+EnumDecl = "enum" ident "{" ident ["=" numConst] {"," ident ["=" numConst]} "}".
+
+VarDecl = Type ident ["[" "]"] {"," ident ["[" "]"]} ";".
+
+StructDecl = "struct" ident ["extends" Type] ["implements" Type {"," Type}]"{"  {VarDecl}["{"{MethodDecl} "}"]"}".
+
+InterfaceDecl = "interface" ident "{"{InterfaceMethodDecl} "}".
+
+InterfaceMethodDecl = (Type | "void") ident "(" [FormPars]")" ";".
+
+MethodDecl = (Type | "void") ident "(" [FormPars]")" {VarDecl} "{" {Stmt} "}".
+
+FormPars = Type ident ["[" "]"] {"," Type ident ["[" "]"]}.
+
+Type = ident.
+
+Stmt =  DesignatorStmt ";"
+  | "if" "(" Condition ")" Stmt ["else" Stmt]
+  | "for" "(" [DesignatorStmt ] ";" [Condition] ";" [DesignatorStmt] ")" Stmt
+  | "break" ";"
+  | "continue" ";"
+  | "return" [Expression] ";"
+  | "read" "(" Designator ")" ";"
+  | "printf" "(" Expression ["," numConst] ")" ";"
+  | "{" {Stmt} "}".
+
+DesignatorStmt = Designator (Assignop Expression | "(" [ActPars] ")" | "++" | "--").
+
+ActPars = Expression {"," Expression}.
+
+Condition = CondTerm {"||" CondTerm}.
+
+CondTerm = CondFact {"&&" CondFact}.
+
+CondFact = Expression [Relop Expression].
+
+Expression = ["-"] Term {Addop Term}.
+
+Term = Factor {Mulop Factor}.
+
+Factor = Designator ["(" [ActPars] ")"]
+  | numConst
+  | charConst
+  | booleanConst
+  | "new" Type ["[" Expression "]"]
+  | "(" Expression ")".
+
+Designator = ident {"." ident | "[" Expression "]"}.
+
+Assignop = "=".
+
+Relop = "==" | "!=" | ">" | ">=" | "<" | "<=".
+
+Addop = "+" | "-".
+
+Mulop = "*" | "/" | "%".
+```
+
+## Other Lexical Structures
+
+```
+keywords: start, break, struct, interface, enum, else, const, if, new, printf, read, return, void, for, extends, continue
+
+token types:
+    ident = letter {letter | digit | "_"}.
+    numConst = digit {digit}.
+    charConst = "'" printableChar "'".
+    booleanConst = ("True" | "False")
+
+operators: +, -, *, /, %, ==, !=, >, >=, <, <=, &&, ||, =, ++, --, ;,
+comma, ., (, ), [, ], {, }
+
+comments: // until the end of the line
+```
+
+## Semantics
+
+ - Each name (method and variable) must be declared before its fist use.
+ - There cannot be two methods with the same name in a single struct.
+ - There must be a function "must"; the return type must be int and the method should have at least one argument.
+
+These checks have to be done on the AST.  Feel free to use JJTree to build your AST and visitor structs (or you can write them manually).
+
+Optional:
+
+ - There cannot be two variables with the same name in one scope.
+ - There must be a method "main"; the return type must be void and the method should have no arguments.
+
+## Submission Instructions
+
+See the syllabus for sharing the repo.
+
+  * All your files have to be in "assignment2" directory (same repo as before).
+  * You should use Java 17 (you can assume it is available)
+  * You should use JavaCC version javacc-7.0.11 (you should NOT assume it is available)
+  * You should have a bash script s that accepts as input path to the input program and runs lexer, parser, semantic analysis.  The output of the run you should save in the file called "OUTPUT" (in the same directory with the s script)
+  * If lexing has any issue, you can throw any exception (and exit with non 0 signal)
+  * If parsing has any issue, you can throw any exception (and exit with non 0 signal)
+  * If analysis has any issue, you can throw any exception (and exit with non 0 signal)
+  * If everything passes (lexing, parsing, analysis), print SUCCESS in the OUTPUT file
+
+We will run your program in the following way:
+
+```bash
+  cd $REPO/assignment2
+  ./s path_to_program
+```
+
+## Important
+
+Be creative.  When something is unclear make a reasonable assumption.
+
+Also, do not try to cover everything at once; start with small
+examples and then expand from there.
+
+
+## Example Program
+
+```c
+start P
+    const int size = 10;
+    enum Num { ZERO, ONE, TEN = 10 }
+    interface I {
+        int getp(int i);
+        int getn(int i);
+    }
+
+    struct Table implements I {
+        int pos[], neg[];
+        {
+            void putp(int a, int idx) { this.pos[idx]=a; }
+            void putn (int a, int idx) { this.neg[idx]=a; }
+            int getp (int idx) { return pos[idx]; }
+            int getn (int idx) { return neg[idx]; }
+        }
+    }
+
+    Table val;
+{
+    void f(char ch, int a, int arg)
+        int x;
+        {
+            x = arg;
+        }
+
+    void main()
+        int x, i;
+        char c;
+    {
+        //---- Initialize val
+        val = new Table;
+        val.pos = new int [size];
+        val.neg = new int [size];
+        for (i = 0; i<size; i++)
+        {
+            val.putp(0,i);
+            val.putn(0,i);
+        }
+        f(c, x, i);
+
+        //----- Read values
+        read(x);
+        for(;x > 0;)
+        {
+            if (Num.ZERO<= x && x < size)
+            {
+                val.putp(val.getp(x)+Num.ONE);
+            } else
+            {
+                if (-size < x && x < 0)
+                {
+                    val.putn(val.getn(-x)+1);
+                }
+            }
+            read(x);
+        }
+    }
+}
+```
