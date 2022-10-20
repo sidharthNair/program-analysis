@@ -27,7 +27,7 @@ public class CoverageListener extends ListenerAdapter {
         String path = instructionToExecute.getFileLocation();
         int lineNum = instructionToExecute.getLineNumber();
         String className = instructionToExecute.getMethodInfo().getClassInfo().getName();
-        if (path != null && lineNum != -1) {
+        if (path != null) {
             if (!coverageMap.containsKey(className)) {
                 coverageMap.put(className, new TreeSet<Integer>());
             }
