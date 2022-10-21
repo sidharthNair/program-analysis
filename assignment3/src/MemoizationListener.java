@@ -70,7 +70,7 @@ public class MemoizationListener extends ListenerAdapter {
                     frame.removeArguments(mi);
                     Object result = memoizeMap.get(mi).get(checkSum);
                     try {
-                        report.write("Returning memoized return value for " + methodToString(mi, args, result) + "\n");
+                        report.write("Returning memoized return value for " + methodToString(mi, args, result) + ".\n");
                     } catch (IOException e) {
                         e.printStackTrace();
                     }
@@ -122,14 +122,14 @@ public class MemoizationListener extends ListenerAdapter {
                     memoizeMap.put(mi, new HashMap<String, Object>());
                 }
                 try {
-                    report.write("Memoizing " + methodToString(mi, args, returnValue) + "\n");
+                    report.write("Memoizing " + methodToString(mi, args, returnValue) + ".\n");
                 } catch (IOException e) {
                     e.printStackTrace();
                 }
                 memoizeMap.get(mi).put(checkSum, returnValue);
             } else {
                 try {
-                    report.write(methodToString(mi, args, returnValue) + " is not memoizable" + "\n");
+                    report.write(methodToString(mi, args, returnValue) + " is not memoizable" + ".\n");
                 } catch (IOException e) {
                     e.printStackTrace();
                 }
