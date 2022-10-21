@@ -157,7 +157,7 @@ public class MemoizationListener extends ListenerAdapter {
         }
         String returnString = "";
         if (returnValue != null && !isPrimitiveClass(returnValue.getClass())) {
-            returnString += "object:" + returnString.getClass().getName();
+            returnString += "object:" + returnValue.getClass().getName();
         } else if (returnValue != null) {
             returnString += returnValue;
         } else {
