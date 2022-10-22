@@ -161,6 +161,8 @@ public class MemoizationListener extends ListenerAdapter {
         String returnString = "";
         if (returnValue != null && !isPrimitiveClass(returnValue.getClass())) {
             returnString += "object:" + ((DynamicElementInfo) returnValue).getClassInfo().getName();
+        } else if (mi.getReturnTypeName().equals("void")) {
+            returnString += "void";
         } else {
             returnString += returnValue;
         }
