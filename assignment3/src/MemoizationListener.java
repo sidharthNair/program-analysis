@@ -103,8 +103,8 @@ public class MemoizationListener extends ListenerAdapter {
         if (executedInstruction instanceof JVMReturnInstruction) {
             MethodInfo mi = executedInstruction.getMethodInfo();
             Object[] args = argumentMap.get(currentThread).pop();
-            Object returnValue;
             String type = mi.getReturnTypeName();
+            Object returnValue;
             if (type.equals("void")) {
                 returnValue = null;
             } else if (type.equals("long")) {
@@ -113,6 +113,9 @@ public class MemoizationListener extends ListenerAdapter {
                 returnValue = currentThread.getTopFrame().peekDouble();
             } else if (type.equals("float")) {
                 returnValue = currentThread.getTopFrame().peekFloat();
+            } else if (mi.isReferenceReturnType()) {
+                returnValue = currentThread.getTopFrame().getArgumentsValues(currentThread,
+                        new byte[] { mi.getReturnTypeCode() })[0];
             } else {
                 returnValue = currentThread.getTopFrame().peek();
             }
@@ -157,11 +160,9 @@ public class MemoizationListener extends ListenerAdapter {
         }
         String returnString = "";
         if (returnValue != null && !isPrimitiveClass(returnValue.getClass())) {
-            returnString += "object:" + returnValue.getClass().getName();
-        } else if (returnValue != null) {
-            returnString += returnValue;
+            returnString += "object:" + ((DynamicElementInfo) returnValue).getClassInfo().getName();
         } else {
-            returnString += "void";
+            returnString += returnValue;
         }
         return methodName + "(" + params + "):" + returnString;
     }
